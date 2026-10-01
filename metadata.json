@@ -1,0 +1,6 @@
+{
+  "name": "dueFox.co - Automated Invoice Chasing Dashboard",
+  "description": "Minimalist automated invoice chasing dashboard for dueFox.co to track overdue payments, manage clients, and recover revenue.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -56,6 +56,10 @@ class SupabaseService {
     // Check environment variables first
     const envUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
     const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+    console.info('[Supabase] Environment status:', {
+      VITE_SUPABASE_URL: envUrl ? 'configured' : 'missing',
+      VITE_SUPABASE_ANON_KEY: envKey ? 'configured' : 'missing',
+    });
 
     // Check localStorage overrides
     let storedConfig: { url?: string; anonKey?: string } | null = null;
@@ -115,6 +119,7 @@ class SupabaseService {
         });
 
         if (error) {
+          console.error('[Supabase] Sign-in failed:', error);
           // If custom Supabase returned error, return error message
           return { user: null, error: error.message };
         }
@@ -131,6 +136,7 @@ class SupabaseService {
           return { user: authUser };
         }
       } catch (err: any) {
+        console.error('[Supabase] Sign-in request threw an error:', err);
         return { user: null, error: err?.message || 'Authentication error' };
       }
     }
@@ -171,6 +177,7 @@ class SupabaseService {
         });
 
         if (error) {
+          console.error('[Supabase] Sign-up failed:', error);
           return { user: null, error: error.message };
         }
 
@@ -195,6 +202,7 @@ class SupabaseService {
           };
         }
       } catch (err: any) {
+        console.error('[Supabase] Sign-up request threw an error:', err);
         return { user: null, error: err?.message || 'Failed to create account' };
       }
     }
@@ -222,9 +230,12 @@ class SupabaseService {
   public async signOut(): Promise<void> {
     if (this.client) {
       try {
-        await this.client.auth.signOut();
+        const { error } = await this.client.auth.signOut();
+        if (error) {
+          console.error('[Supabase] Sign-out failed:', error);
+        }
       } catch (err) {
-        console.warn('Supabase sign out error:', err);
+        console.error('[Supabase] Sign-out request threw an error:', err);
       }
     }
 
@@ -236,7 +247,10 @@ class SupabaseService {
   public async getUser(): Promise<AuthUser | null> {
     if (this.client) {
       try {
-        const { data } = await this.client.auth.getUser();
+        const { data, error } = await this.client.auth.getUser();
+        if (error) {
+          console.error('[Supabase] User lookup failed:', error);
+        }
         if (data?.user) {
           const authUser: AuthUser = {
             id: data.user.id,
@@ -249,6 +263,7 @@ class SupabaseService {
         }
         return null;
       } catch (err) {
+        console.error('[Supabase] User lookup request threw an error:', err);
         return null;
       }
     }
@@ -289,7 +304,9 @@ class SupabaseService {
           }
         });
         supabaseSub = data?.subscription;
-      } catch {}
+      } catch (err) {
+        console.error('[Supabase] Auth-state subscription failed:', err);
+      }
     }
 
     return () => {

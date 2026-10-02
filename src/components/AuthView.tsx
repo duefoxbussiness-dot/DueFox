@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, ArrowRight, ShieldCheck, Sun, Moon, Database, CheckCircle2, Sparkles, AlertCircle, Eye, EyeOff, Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, CheckCircle2, Sparkles, AlertCircle, Eye, EyeOff, Send } from 'lucide-react';
 import { AuthUser, ThemeMode, SupabaseConfig } from '../types';
 import { supabaseService, DEMO_USER } from '../lib/supabase';
 
@@ -18,8 +19,9 @@ export const AuthView: React.FC<AuthViewProps> = ({
   supabaseConfig,
   onOpenSupabaseModal,
 }) => {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('duefoxbussiness@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('duefox2026');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +53,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           setError(res.error);
         } else if (res.user) {
           onAuthenticated(res.user);
+          navigate('/dashboard');
         }
       } else {
         const res = await supabaseService.signUp(email, password, fullName);
@@ -63,6 +66,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           setTab('login');
           if (res.user && !res.requiresConfirmation) {
             onAuthenticated(res.user);
+            navigate('/dashboard');
           }
         }
       }
@@ -73,19 +77,10 @@ export const AuthView: React.FC<AuthViewProps> = ({
     }
   };
 
-  const handleQuickDemoLogin = async () => {
-    setEmail(DEMO_USER.email);
-    setPassword('duefox2026');
-    setLoading(true);
+  const handleQuickDemoLogin = () => {
     setError(null);
-    try {
-      const res = await supabaseService.signIn(DEMO_USER.email, 'duefox2026');
-      if (res.user) {
-        onAuthenticated(res.user);
-      }
-    } finally {
-      setLoading(false);
-    }
+    onAuthenticated(DEMO_USER);
+    navigate('/dashboard');
   };
 
   return (
@@ -93,7 +88,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       {/* Subtle ambient brand glow in dark mode */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-[#FF5722]/10 via-[#FF5722]/5 to-transparent blur-3xl pointer-events-none rounded-full dark:opacity-60 opacity-20" />
 
-      {/* Top Bar inside Auth: Theme Toggle and DB Status */}
+      {/* Top Bar inside Auth */}
       <div className="w-full max-w-7xl mx-auto flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-electric flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -122,39 +117,6 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Supabase status button */}
-          <button
-            type="button"
-            onClick={onOpenSupabaseModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
-              supabaseConfig.isConnected
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-                : 'bg-slate-100 dark:bg-[#1E293B] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#334155] hover:bg-slate-200 dark:hover:bg-slate-700/60'
-            }`}
-          >
-            <Database className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">
-              {supabaseConfig.isConnected ? 'Supabase Connected' : 'Local Sandbox Mode'}
-            </span>
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                supabaseConfig.isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
-          </button>
-
-          {/* Theme Switcher Toggle */}
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="p-2 rounded-lg border border-slate-300 dark:border-[#334155] bg-white/80 dark:bg-[#1E293B]/80 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-xs"
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            aria-label="Toggle dark/light theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-          </button>
-        </div>
       </div>
 
       {/* Main Glassmorphic Login Card */}
@@ -280,7 +242,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 <input
                   type="email"
                   required
-                  placeholder="name@company.com"
+                  placeholder="demo@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors"
@@ -361,7 +323,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
             className="w-full py-2 px-3 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Instant Demo Login (duefoxbussiness@gmail.com)</span>
+            <span>Instant Demo Login</span>
           </button>
 
           {/* Footer security note */}

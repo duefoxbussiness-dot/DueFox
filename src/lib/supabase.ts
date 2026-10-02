@@ -54,7 +54,7 @@ class SupabaseService {
 
   public init() {
     // Check environment variables first
-    const envUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
+    const envUrl = (import.meta.env.VITE_SUPABASE_URL as string) || 'https://uuoobrwdjrrhterucbra.supabase.co';
     const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
     console.info('[Supabase] Environment status:', {
       VITE_SUPABASE_URL: envUrl ? 'configured' : 'missing',

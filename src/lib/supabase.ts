@@ -247,8 +247,9 @@ class SupabaseService {
           localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(authUser));
           return authUser;
         }
+        return null;
       } catch (err) {
-        // Fall back to local session
+        return null;
       }
     }
 
@@ -382,12 +383,15 @@ class SupabaseService {
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
 
-          if (!invError && userInvoices) {
+          if (invError) throw invError;
+
+          if (userInvoices) {
             // Also fetch clients belonging to this user
-            const { data: userClients } = await this.client
+            const { data: userClients, error: clientsError } = await this.client
               .from('clients')
               .select('*')
               .eq('user_id', userId);
+            if (clientsError) throw clientsError;
 
             const clientMap = new Map<string, Client>();
             (userClients || []).forEach((c: any) => clientMap.set(c.id, c));
@@ -398,10 +402,11 @@ class SupabaseService {
               .filter((cid: string) => !clientMap.has(cid));
 
             if (missingClientIds.length > 0) {
-              const { data: extraClients } = await this.client
+              const { data: extraClients, error: extraClientsError } = await this.client
                 .from('clients')
                 .select('*')
                 .in('id', missingClientIds);
+              if (extraClientsError) throw extraClientsError;
               (extraClients || []).forEach((c: any) => clientMap.set(c.id, c));
             }
 
@@ -459,6 +464,8 @@ class SupabaseService {
           this.client.from('clients').select('*'),
           this.client.from('invoices').select('*').order('created_at', { ascending: false }),
         ]);
+        if (clientsRes.error) throw clientsRes.error;
+        if (invoicesRes.error) throw invoicesRes.error;
 
         if (invoicesRes.data) {
           const clientMap = new Map<string, Client>();
@@ -502,7 +509,8 @@ class SupabaseService {
           });
         }
       } catch (err) {
-        console.warn('Supabase fetch error, falling back to local database:', err);
+        console.warn('Supabase fetch error:', err);
+        if (this.client) throw err;
       }
     }
 

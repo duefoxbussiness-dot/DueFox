@@ -70,19 +70,28 @@ class SupabaseService {
       // Ignore storage errors
     }
 
-    const targetUrl = storedConfig?.url || envUrl;
+    const supabaseUrl = (storedConfig?.url || envUrl).trim();
     const targetKey = storedConfig?.anonKey || envKey;
+    console.log('Using Supabase URL:', supabaseUrl);
 
-    if (targetUrl && targetKey && targetUrl.startsWith('http') && targetKey.length > 20) {
+    let isValidSupabaseUrl = false;
+    try {
+      const parsedUrl = new URL(supabaseUrl);
+      isValidSupabaseUrl = (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:') && Boolean(parsedUrl.hostname);
+    } catch {
+      // Invalid or empty URLs keep the app in local/demo mode.
+    }
+
+    if (isValidSupabaseUrl && targetKey && targetKey.length > 20) {
       try {
-        this.client = createClient(targetUrl, targetKey, {
+        this.client = createClient(supabaseUrl, targetKey, {
           auth: {
             persistSession: true,
             autoRefreshToken: true,
           },
         });
         this.config = {
-          url: targetUrl,
+          url: supabaseUrl,
           anonKey: targetKey,
           isConnected: true,
           isCustom: Boolean(storedConfig?.url),
@@ -90,7 +99,7 @@ class SupabaseService {
       } catch (err) {
         console.warn('Failed to initialize Supabase client:', err);
         this.client = null;
-        this.config = { url: targetUrl, anonKey: targetKey, isConnected: false, isCustom: true };
+        this.config = { url: supabaseUrl, anonKey: targetKey, isConnected: false, isCustom: true };
       }
     } else {
       this.client = null;

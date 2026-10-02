@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabaseService } from '../lib/supabase';
+import { DEMO_USER, supabaseService } from '../lib/supabase';
 import {
   AuthUser,
   CurrencyCode,
@@ -20,6 +20,87 @@ import { ProfileModal } from '../components/ProfileModal';
 import { SupabaseConfigModal } from '../components/SupabaseConfigModal';
 import { AuthView } from '../components/AuthView';
 import { ToastContainer, ToastMessage } from '../components/Toast';
+
+const demoDueDate = (daysAgo: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().slice(0, 10);
+};
+
+const DEMO_INVOICES: InvoiceWithClient[] = [
+  {
+    id: 'demo-inv-acme',
+    user_id: DEMO_USER.id,
+    client_id: 'demo-client-acme',
+    invoice_number: 'DEMO-1042',
+    amount: 1200,
+    currency: 'USD',
+    due_date: demoDueDate(12),
+    status: 'pending',
+    chase_count: 2,
+    chase_schedule: 'standard',
+    notes: 'Brand identity and design services',
+    created_at: new Date().toISOString(),
+    client: {
+      id: 'demo-client-acme',
+      user_id: DEMO_USER.id,
+      name: 'Jordan Lee',
+      email: 'jordan@acmecorp.example',
+      phone: '',
+      company: 'Acme Corp',
+      created_at: new Date().toISOString(),
+    },
+    days_overdue: 12,
+  },
+  {
+    id: 'demo-inv-stark',
+    user_id: DEMO_USER.id,
+    client_id: 'demo-client-stark',
+    invoice_number: 'DEMO-1043',
+    amount: 4500,
+    currency: 'USD',
+    due_date: demoDueDate(38),
+    status: 'escalated',
+    chase_count: 5,
+    chase_schedule: 'assertive',
+    notes: 'Product engineering milestone',
+    created_at: new Date().toISOString(),
+    client: {
+      id: 'demo-client-stark',
+      user_id: DEMO_USER.id,
+      name: 'Morgan Stark',
+      email: 'morgan@stark.example',
+      phone: '',
+      company: 'Stark Ltd',
+      created_at: new Date().toISOString(),
+    },
+    days_overdue: 38,
+  },
+  {
+    id: 'demo-inv-cyberdyne',
+    user_id: DEMO_USER.id,
+    client_id: 'demo-client-cyberdyne',
+    invoice_number: 'DEMO-1044',
+    amount: 850,
+    currency: 'USD',
+    due_date: demoDueDate(6),
+    status: 'pending',
+    chase_count: 1,
+    chase_schedule: 'gentle',
+    notes: 'Monthly software consulting',
+    created_at: new Date().toISOString(),
+    client: {
+      id: 'demo-client-cyberdyne',
+      user_id: DEMO_USER.id,
+      name: 'Riley Connor',
+      email: 'riley@cyberdyne.example',
+      phone: '',
+      company: 'Cyberdyne',
+      created_at: new Date().toISOString(),
+    },
+    days_overdue: 6,
+  },
+];
 
 export default function Dashboard() {
   // Theme Mode (Default: Crisp Light Theme)
@@ -144,6 +225,12 @@ export default function Dashboard() {
   // Fetch invoices filtered by authenticated user_id
   const loadData = useCallback(async () => {
     if (!currentUser) return;
+    if (currentUser.id === DEMO_USER.id) {
+      setInvoices(DEMO_INVOICES);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const data = await supabaseService.fetchClientsAndInvoices(currentUser.id);
@@ -159,8 +246,8 @@ export default function Dashboard() {
   // Initial load and Real-time subscription setup
   useEffect(() => {
     if (!currentUser) return;
-
     loadData();
+    if (currentUser.id === DEMO_USER.id) return;
 
     // Subscribe to live Postgres changes and local bus updates
     const unsubscribe = supabaseService.subscribeToChanges(() => {
@@ -452,6 +539,8 @@ export default function Dashboard() {
         }}
         user={currentUser}
         profile={userProfile}
+        isDemoMode={currentUser.id === DEMO_USER.id}
+        onCreateAccount={() => setCurrentUser(null)}
         onSignOut={handleSignOut}
       />
 
@@ -567,6 +656,7 @@ export default function Dashboard() {
         profile={userProfile}
         onSaveProfile={handleSaveProfile}
         initialTab={profileModalTab}
+        isDemoMode={currentUser.id === DEMO_USER.id}
       />
 
       <SupabaseConfigModal

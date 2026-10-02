@@ -22,6 +22,7 @@ interface ProfileModalProps {
   profile: UserProfile | null;
   onSaveProfile: (profile: UserProfile) => Promise<void>;
   initialTab?: 'profile' | 'payments' | 'plan';
+  isDemoMode?: boolean;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -30,6 +31,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   profile,
   onSaveProfile,
   initialTab = 'profile',
+  isDemoMode = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'payments' | 'plan'>(initialTab);
 
@@ -59,20 +61,20 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
   useEffect(() => {
     if (isOpen && profile) {
-      setFullName(profile.full_name || '');
-      setCompanyName(profile.company_name || '');
-      setBusinessEmail(profile.business_email || '');
-      setPhone(profile.phone || '');
+      setFullName(isDemoMode ? '' : profile.full_name || '');
+      setCompanyName(isDemoMode ? '' : profile.company_name || '');
+      setBusinessEmail(isDemoMode ? '' : profile.business_email || '');
+      setPhone(isDemoMode ? '' : profile.phone || '');
       setDefaultCurrency(profile.default_currency || 'USD');
-      setCompanyAddress(profile.company_address || '');
-      setTaxId(profile.tax_id || '');
+      setCompanyAddress(isDemoMode ? '' : profile.company_address || '');
+      setTaxId(isDemoMode ? '' : profile.tax_id || '');
 
-      setPaymentGatewayUrl(profile.payment_gateway_url || '');
-      setBankHolderName(profile.bank_holder_name || '');
-      setBankName(profile.bank_name || '');
-      setBankAccountNumber(profile.bank_account_number || '');
-      setBankSwiftBic(profile.bank_swift_bic || '');
-      setBankRoutingWise(profile.bank_routing_wise || '');
+      setPaymentGatewayUrl(isDemoMode ? '' : profile.payment_gateway_url || '');
+      setBankHolderName(isDemoMode ? '' : profile.bank_holder_name || '');
+      setBankName(isDemoMode ? '' : profile.bank_name || '');
+      setBankAccountNumber(isDemoMode ? '' : profile.bank_account_number || '');
+      setBankSwiftBic(isDemoMode ? '' : profile.bank_swift_bic || '');
+      setBankRoutingWise(isDemoMode ? '' : profile.bank_routing_wise || '');
 
       setPlan(profile.plan || 'free');
 
@@ -80,7 +82,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       setSaveSuccess(false);
       setActiveTab(initialTab);
     }
-  }, [isOpen, profile, initialTab]);
+  }, [isOpen, profile, initialTab, isDemoMode]);
 
   if (!isOpen || !profile) return null;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Zap, LogOut, User as UserIcon } from 'lucide-react';
+import { Plus, Zap, LogOut, User as UserIcon, UserPlus } from 'lucide-react';
 import { AuthUser, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -7,6 +7,8 @@ interface HeaderProps {
   onOpenUpgradePlan: () => void;
   onOpenProfileModal: () => void;
   onSignOut: () => void;
+  isDemoMode?: boolean;
+  onCreateAccount?: () => void;
   user: AuthUser | null;
   profile?: UserProfile | null;
 }
@@ -16,6 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenUpgradePlan,
   onOpenProfileModal,
   onSignOut,
+  isDemoMode = false,
+  onCreateAccount,
   user,
   profile,
 }) => {
@@ -89,13 +93,28 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight truncate max-w-[170px] group-hover:text-electric transition-colors">
-                {profile?.company_name || 'Your Company'}
+                {isDemoMode ? 'Demo Account' : profile?.company_name || 'Your Company'}
               </span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono leading-tight truncate max-w-[170px]">
-                {profile?.business_email || user?.email || 'Guest User'}
+                {isDemoMode ? 'demo@duefox.co' : profile?.business_email || user?.email || 'Guest User'}
               </span>
             </div>
           </button>
+
+          {isDemoMode && onCreateAccount && (
+            <button
+              type="button"
+              onClick={onCreateAccount}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-white bg-electric hover:bg-[#F4511E] active:bg-[#E64A19] rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap"
+              title="Create an account or sign in"
+            >
+              <UserPlus className="w-4 h-4 shrink-0" />
+              <span>
+                <span className="hidden sm:inline">Create Account / Sign In</span>
+                <span className="sm:hidden">Sign In</span>
+              </span>
+            </button>
+          )}
 
           {/* 4. "Sign Out" Button */}
           <button

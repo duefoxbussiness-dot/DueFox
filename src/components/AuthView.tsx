@@ -22,7 +22,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const navigate = useNavigate();
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('duefox2026');
+  const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [signupConfirmation, setSignupConfirmation] = useState(false);
@@ -243,6 +243,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   type="email"
                   required
                   placeholder="demo@gmail.com"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors"
@@ -271,6 +272,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-10 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors"

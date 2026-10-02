@@ -9,8 +9,8 @@ const LOCAL_AUTH_KEY = 'duefox_auth_session_v1';
 
 export const DEMO_USER: AuthUser = {
   id: 'usr-duefox-demo-01',
-  email: 'duefoxbussiness@gmail.com',
-  name: 'DueFox Operations',
+  email: 'demo@example.com',
+  name: 'Demo User',
   created_at: '2026-09-01T00:00:00Z',
 };
 
@@ -1135,7 +1135,7 @@ class SupabaseService {
           const profile: UserProfile = {
             id: data.id,
             full_name: data.full_name || '',
-            company_name: data.company_name || 'dueFox Business',
+            company_name: data.company_name || '',
             business_email: data.business_email || '',
             phone: data.phone || '',
             default_currency: (data.default_currency as CurrencyCode) || 'USD',
@@ -1162,19 +1162,19 @@ class SupabaseService {
     // Default seed profile for new user
     const defaultProfile: UserProfile = {
       id: userId,
-      full_name: 'Alex Morgan',
-      company_name: 'dueFox Operations LLC',
-      business_email: 'duefoxbussiness@gmail.com',
-      phone: '+1 (555) 019-2834',
+      full_name: '',
+      company_name: '',
+      business_email: '',
+      phone: '',
       default_currency: 'USD',
-      company_address: '100 Innovation Way, Suite 400, San Francisco, CA',
-      tax_id: 'US-EIN-94-3829102',
-      payment_gateway_url: 'https://buy.stripe.com/duefox_global_checkout',
-      bank_holder_name: 'dueFox Operations LLC',
-      bank_name: 'JPMorgan Chase Bank, N.A.',
-      bank_account_number: 'US89370400440532013000',
-      bank_swift_bic: 'CHASUS33XXX',
-      bank_routing_wise: 'ACH Routing: 021000021 / Wise Tag: @duefox_corp',
+      company_address: '',
+      tax_id: '',
+      payment_gateway_url: '',
+      bank_holder_name: '',
+      bank_name: '',
+      bank_account_number: '',
+      bank_swift_bic: '',
+      bank_routing_wise: '',
       plan: 'free',
       plan_status: 'Active',
       updated_at: new Date().toISOString(),

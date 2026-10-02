@@ -53,12 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Exact Sequence
-            1. "+ Add Invoice" primary button
-            2. "⚡ Upgrade Plan" / "Subscription" CTA button
-            3. "dueFox Operations LLC" user profile section (duefoxbussiness@gmail.com)
-            4. "Sign Out" button
-        */}
+        {/* Right: invoice actions, subscription, user profile, and sign out */}
         <div className="flex items-center gap-2.5 sm:gap-3.5 whitespace-nowrap">
           {/* 1. + Add Invoice Primary Button */}
           <button
@@ -82,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>⚡ Upgrade Plan</span>
           </button>
 
-          {/* 3. "dueFox Operations LLC" User Profile Section */}
+          {/* 3. User Profile Section */}
           <button
             type="button"
             onClick={onOpenProfileModal}
@@ -94,10 +89,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight truncate max-w-[170px] group-hover:text-electric transition-colors">
-                {profile?.company_name || 'dueFox Operations LLC'}
+                {profile?.company_name || 'Your Company'}
               </span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono leading-tight truncate max-w-[170px]">
-                {profile?.business_email || user?.email || 'duefoxbussiness@gmail.com'}
+                {profile?.business_email || user?.email || 'Guest User'}
               </span>
             </div>
           </button>

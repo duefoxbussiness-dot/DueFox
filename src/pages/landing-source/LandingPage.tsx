@@ -54,11 +54,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
     }
   };
 
-  // Pricing matching the exact uploaded image: $0 Starter, $29 Pro Chaser, $79 Agency / Scale
+  // Monthly plan rates are consistent across the app.
   const prices = {
     starter: 0,
-    pro: billingCycle === 'monthly' ? 29 : 24,
-    agency: billingCycle === 'monthly' ? 79 : 64,
+    pro: 9,
+    agency: 49,
   };
 
   // ROI math
@@ -784,7 +784,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
                 }`}>
-                  Save 20%
+                  {billingCycle === 'annual' ? 'Billed yearly' : 'No commitment'}
                 </span>
               </span>
             </button>
@@ -805,7 +805,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             <div className="space-y-6">
               <div>
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  STARTER
+                  BASIC
                 </span>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
@@ -848,7 +848,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             </div>
           </motion.div>
 
-          {/* 2. PRO CHASER PLAN ($29 /mo) - HIGHLIGHTED WITH ORANGE BORDER MATCHING SCREENSHOT */}
+          {/* 2. PRO CHASER PLAN ($9 /mo) - HIGHLIGHTED WITH ORANGE BORDER MATCHING SCREENSHOT */}
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -912,7 +912,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             </div>
           </motion.div>
 
-          {/* 3. AGENCY / SCALE PLAN ($79 /mo) - PURPLE BORDER MATCHING SCREENSHOT */}
+          {/* 3. AGENCY / SCALE PLAN ($49 /mo) - PURPLE BORDER MATCHING SCREENSHOT */}
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}

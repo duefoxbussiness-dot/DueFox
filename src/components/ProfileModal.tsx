@@ -262,7 +262,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Apex Digital LLC"
+                      placeholder="e.g. Acme Corp"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -280,7 +280,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. John Doe"
+                      placeholder="e.g. Alex Morgan"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -300,7 +300,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <input
                       type="email"
                       required
-                      placeholder="billing@yourdomain.com"
+                      placeholder="e.g. contact@acmecorp.com"
                       value={businessEmail}
                       onChange={(e) => setBusinessEmail(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -317,7 +317,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       type="text"
-                      placeholder="e.g. +1 (555) 000-0000"
+                      placeholder="e.g. +1 555 000 0000"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -365,7 +365,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       type="text"
-                      placeholder="100 Innovation Way, Suite 400"
+                      placeholder="e.g. 123 Main Street, Suite 400"
                       value={companyAddress}
                       onChange={(e) => setCompanyAddress(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -381,7 +381,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       type="text"
-                      placeholder="e.g. US-EIN-94-3829102"
+                      placeholder="e.g. Your tax ID"
                       value={taxId}
                       onChange={(e) => setTaxId(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -412,7 +412,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <div className="relative">
                   <input
                     type="url"
-                    placeholder="https://buy.stripe.com/... or https://paypal.me/yourcompany"
+                    placeholder="e.g. https://buy.stripe.com/..."
                     value={paymentGatewayUrl}
                     onChange={(e) => setPaymentGatewayUrl(e.target.value)}
                     className="w-full px-3 py-2 text-sm font-mono bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
@@ -450,7 +450,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Apex Digital LLC"
+                      placeholder="e.g. Acme Corp"
                       value={bankHolderName}
                       onChange={(e) => setBankHolderName(e.target.value)}
                       className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
@@ -464,7 +464,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. JPMorgan Chase Bank, N.A."
+                      placeholder="e.g. Your bank name"
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
                       className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
@@ -478,7 +478,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. US89370400440532013000"
+                      placeholder="e.g. Account number or IBAN"
                       value={bankAccountNumber}
                       onChange={(e) => setBankAccountNumber(e.target.value)}
                       className="w-full px-3 py-2 text-xs sm:text-sm font-mono bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
@@ -492,7 +492,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. CHASUS33XXX"
+                      placeholder="e.g. SWIFT or BIC code"
                       value={bankSwiftBic}
                       onChange={(e) => setBankSwiftBic(e.target.value)}
                       className="w-full px-3 py-2 text-xs sm:text-sm font-mono bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
@@ -507,7 +507,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. ACH Routing: 021000021 · Wise Tag: @apexdigital"
+                    placeholder="e.g. Routing number, IFSC, or Wise tag"
                     value={bankRoutingWise}
                     onChange={(e) => setBankRoutingWise(e.target.value)}
                     className="w-full px-3 py-2 text-xs sm:text-sm font-mono bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
@@ -561,7 +561,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase text-slate-500">Starter</span>
+                      <span className="text-xs font-bold uppercase text-slate-500">Basic</span>
                       {plan === 'free' && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700">
                           Current
@@ -620,7 +620,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       )}
                     </div>
                     <div className="text-lg font-bold text-slate-900 mb-2">
-                      $29 <span className="text-xs font-normal text-slate-500">/mo</span>
+                      $9 <span className="text-xs font-normal text-slate-500">/mo</span>
                     </div>
                     <ul className="space-y-1.5 text-xs text-slate-600">
                       <li className="flex items-center gap-1.5">
@@ -672,7 +672,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       )}
                     </div>
                     <div className="text-lg font-bold text-slate-900 mb-2">
-                      $79 <span className="text-xs font-normal text-slate-500">/mo</span>
+                      $49 <span className="text-xs font-normal text-slate-500">/mo</span>
                     </div>
                     <ul className="space-y-1.5 text-xs text-slate-600">
                       <li className="flex items-center gap-1.5">

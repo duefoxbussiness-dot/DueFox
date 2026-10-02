@@ -45,21 +45,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
 
   // User & Business profile
   const [profile, setProfile] = useState<BusinessProfile>({
-    companyName: 'dueFox Operations LLC',
-    representativeName: 'Alex Morgan',
-    email: 'duefoxbussiness@gmail.com',
-    phone: '+1 (555) 019-2834',
+    companyName: '',
+    representativeName: '',
+    email: '',
+    phone: '',
     defaultCurrency: 'USD',
-    address: '100 Innovation Way, Suite 400, San Francisco',
-    taxId: 'US-EIN-94-3829102',
-    directGatewayLink: 'https://buy.stripe.com/duefox_standard_settlement',
-    currentPlan: 'Agency',
+    address: '',
+    taxId: '',
+    directGatewayLink: '',
+    currentPlan: 'Starter',
     bankDetails: {
-      accountHolder: 'dueFox Operations LLC',
-      bankName: 'JPMorgan Chase Bank, N.A.',
-      accountNumber: 'US89370400440532013000',
-      swiftCode: 'CHASUS33XXX',
-      routingOrIfsc: 'ACH Routing: 021000021',
+      accountHolder: '',
+      bankName: '',
+      accountNumber: '',
+      swiftCode: '',
+      routingOrIfsc: '',
     },
   });
 
@@ -181,8 +181,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                 <User className="w-4 h-4" />
               </div>
               <div className="leading-tight">
-                <div className="text-xs font-bold text-slate-800">{profile.companyName}</div>
-                <div className="text-[10px] text-slate-400">{profile.email}</div>
+                <div className="text-xs font-bold text-slate-800">{profile.companyName || 'Your Company'}</div>
+                <div className="text-[10px] text-slate-400">{profile.email || 'Guest User'}</div>
               </div>
             </button>
 

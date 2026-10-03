@@ -67,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Create and register a new invoice"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>+ Add Invoice</span>
+            <span>Add Invoice</span>
           </button>
 
           {/* 2. "⚡ Upgrade Plan" / "Subscription" CTA Button */}
@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="View subscription tiers and upgrade plan"
           >
             <Zap className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0" />
-            <span>⚡ Upgrade Plan</span>
+            <span>Upgrade Plan</span>
           </button>
 
           {/* 3. User Profile Section */}

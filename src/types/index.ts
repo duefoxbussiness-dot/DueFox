@@ -70,6 +70,7 @@ export interface InvoiceWithClient extends Invoice {
 }
 
 export interface NewInvoiceInput {
+  invoiceNumber?: string;
   clientName: string;
   email: string;
   phone: string;

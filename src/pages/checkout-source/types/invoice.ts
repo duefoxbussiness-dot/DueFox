@@ -42,6 +42,7 @@ export interface ClientProfile {
 
 export interface Invoice {
   id: string; // e.g. "INV-2026-084"
+  invoiceNumber?: string;
   client: ClientProfile;
   agency: CompanyProfile;
   issueDate: string;

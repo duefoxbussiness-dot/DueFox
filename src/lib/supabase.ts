@@ -19,6 +19,10 @@ const localEventTarget = new EventTarget();
 const LOCAL_CHANGE_EVENT = 'duefox_db_change';
 const AUTH_CHANGE_EVENT = 'duefox_auth_change';
 
+function createInvoiceNumber(): string {
+  return `INV-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+}
+
 // Calculate days overdue based on today
 export function calculateDaysOverdue(dueDateStr: string): number {
   const due = new Date(dueDateStr);
@@ -544,6 +548,56 @@ class SupabaseService {
     return this.getLocalClientsAndInvoices(userId);
   }
 
+  public async fetchPublicInvoice(invoiceId: string): Promise<{ invoice: InvoiceWithClient; profile: UserProfile | null } | null> {
+    if (this.client) {
+      try {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invoiceId);
+        let row = null;
+
+        if (isUuid) {
+          const idResult = await this.client
+            .from('invoices')
+            .select('*')
+            .eq('id', invoiceId)
+            .maybeSingle();
+          if (idResult.error) throw idResult.error;
+          row = idResult.data;
+        }
+
+        if (!row) {
+          const invoiceNumberResult = await this.client
+            .from('invoices')
+            .select('*')
+            .eq('invoice_number', invoiceId)
+            .maybeSingle();
+          if (invoiceNumberResult.error) throw invoiceNumberResult.error;
+          row = invoiceNumberResult.data;
+        }
+
+        if (row) {
+          const { data: clientRecord, error: clientError } = await this.client
+            .from('clients')
+            .select('*')
+            .eq('id', row.client_id)
+            .maybeSingle();
+          if (clientError) throw clientError;
+
+          const invoice = this.mapSupabaseInvoiceRows([{ ...row, clients: clientRecord }])[0];
+          const profile = invoice.user_id ? await this.getProfile(invoice.user_id) : null;
+          return { invoice, profile };
+        }
+      } catch (err) {
+        console.warn('Supabase public invoice lookup failed, checking local records:', err);
+      }
+    }
+
+    const invoice = this.getLocalClientsAndInvoices().find((item) => item.id === invoiceId || item.invoice_number === invoiceId);
+    if (!invoice) return null;
+
+    const profile = invoice.user_id ? await this.getProfile(invoice.user_id) : null;
+    return { invoice, profile };
+  }
+
   private mapSupabaseInvoiceRows(data: any[]): InvoiceWithClient[] {
     return data.map((row: any) => {
       const clientData = row.clients || {
@@ -680,8 +734,7 @@ class SupabaseService {
         }
 
         // 2. Generate invoice number
-        const randomNum = Math.floor(100 + Math.random() * 900);
-        const invoiceNumber = `INV-${new Date().getFullYear()}-${randomNum}`;
+        const invoiceNumber = input.invoiceNumber?.trim() || createInvoiceNumber();
         const newInvoiceId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `inv-${Date.now()}`;
 
         // Ensure user_id is explicitly set and included in the insert payload
@@ -694,7 +747,7 @@ class SupabaseService {
           currency: input.currency,
           due_date: input.dueDate,
           status: initialStatus,
-          payment_link: input.paymentLink?.trim() || `https://pay.duefox.co/inv/${invoiceNumber}`,
+          payment_link: input.paymentLink?.trim() || `${window.location.origin}/pay/${newInvoiceId}`,
           chase_count: 0,
           chase_schedule: input.chaseSchedule || 'standard',
           notes: input.notes?.trim() || '',
@@ -760,10 +813,10 @@ class SupabaseService {
       if (input.company) client.company = input.company.trim();
     }
 
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${randomNum}`;
+    const invoiceNumber = input.invoiceNumber?.trim() || createInvoiceNumber();
+    const localInvoiceId = `inv-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newInvoice: Invoice = {
-      id: `inv-${Date.now()}`,
+      id: localInvoiceId,
       user_id: resolvedUserId,
       client_id: client.id,
       invoice_number: invoiceNumber,
@@ -771,7 +824,7 @@ class SupabaseService {
       currency: input.currency,
       due_date: input.dueDate,
       status: initialStatus,
-      payment_link: input.paymentLink?.trim() || `https://pay.duefox.co/inv/${invoiceNumber}`,
+      payment_link: input.paymentLink?.trim() || `${window.location.origin}/pay/${localInvoiceId}`,
       chase_count: 0,
       chase_schedule: input.chaseSchedule || 'standard',
       notes: input.notes?.trim() || '',
@@ -800,7 +853,7 @@ class SupabaseService {
         // 1. Fetch current invoice to know client_id and current status
         const { data: currentInv } = await this.client
           .from('invoices')
-          .select('client_id, status, invoice_number, chase_count, created_at, user_id')
+          .select('client_id, status, invoice_number, payment_link, chase_count, created_at, user_id')
           .eq('id', id)
           .single();
 
@@ -848,11 +901,14 @@ class SupabaseService {
         const { data: updatedInv, error: invError } = await this.client
           .from('invoices')
           .update({
+            invoice_number: input.invoiceNumber?.trim() || currentInv?.invoice_number,
             amount: Number(input.amount),
             currency: input.currency,
             due_date: input.dueDate,
             status: updatedStatus,
-            payment_link: input.paymentLink?.trim() || null,
+            payment_link: input.paymentLink === undefined
+              ? currentInv?.payment_link || null
+              : input.paymentLink.trim() || null,
             chase_schedule: input.chaseSchedule || 'standard',
             notes: input.notes?.trim() || '',
           })
@@ -867,12 +923,14 @@ class SupabaseService {
         const result: InvoiceWithClient = {
           id,
           client_id: clientId || clientRecord.id,
-          invoice_number: updatedInv?.invoice_number || currentInv?.invoice_number || `INV-${id.substring(0, 6)}`,
+          invoice_number: updatedInv?.invoice_number || input.invoiceNumber?.trim() || currentInv?.invoice_number || `INV-${id.substring(0, 6)}`,
           amount: Number(updatedInv?.amount ?? input.amount),
           currency: updatedInv?.currency || input.currency,
           due_date: updatedInv?.due_date || input.dueDate,
           status: updatedInv?.status || updatedStatus,
-          payment_link: updatedInv?.payment_link || input.paymentLink,
+          payment_link: updatedInv?.payment_link ?? (input.paymentLink === undefined
+            ? currentInv?.payment_link
+            : input.paymentLink.trim() || undefined),
           chase_count: updatedInv?.chase_count ?? (currentInv?.chase_count || 0),
           last_chased_at: updatedInv?.last_chased_at,
           chase_schedule: updatedInv?.chase_schedule || input.chaseSchedule || 'standard',
@@ -940,12 +998,15 @@ class SupabaseService {
         chase_count: 0,
         created_at: new Date().toISOString(),
       }),
+      invoice_number: input.invoiceNumber?.trim() || existingInv?.invoice_number || `INV-${id.substring(0, 6)}`,
       client_id: client.id,
       amount: Number(input.amount),
       currency: input.currency,
       due_date: input.dueDate,
       status: resolvedStatus,
-      payment_link: input.paymentLink?.trim() || existingInv?.payment_link,
+      payment_link: input.paymentLink === undefined
+        ? existingInv?.payment_link
+        : input.paymentLink.trim() || undefined,
       chase_schedule: input.chaseSchedule || 'standard',
       notes: input.notes?.trim() || '',
     };

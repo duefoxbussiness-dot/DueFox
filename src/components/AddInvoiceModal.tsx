@@ -20,6 +20,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
   profile,
 }) => {
   const isEditing = Boolean(initialInvoice);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
   const [clientName, setClientName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -41,6 +42,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (initialInvoice) {
+        setInvoiceNumber(initialInvoice.invoice_number || '');
         setClientName(initialInvoice.client.name || '');
         setEmail(initialInvoice.client.email || '');
         setPhone(initialInvoice.client.phone || '');
@@ -52,6 +54,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
         setChaseSchedule(initialInvoice.chase_schedule || 'standard');
         setNotes(initialInvoice.notes || '');
       } else {
+        setInvoiceNumber('');
         setClientName('');
         setEmail('');
         setPhone('');
@@ -105,6 +108,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
     try {
       setLoading(true);
       await onSubmit({
+        invoiceNumber: invoiceNumber.trim() || `INV-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
         clientName: clientName.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -112,7 +116,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
         amount: parsedAmount,
         currency,
         dueDate,
-        paymentLink: paymentLink.trim() || undefined,
+        paymentLink: paymentLink.trim(),
         chaseSchedule,
         notes: notes.trim() || undefined,
       });
@@ -263,6 +267,22 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
               Invoice & Payment Terms
             </span>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Invoice Number
+              </label>
+              <div className="relative">
+                <FileText className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="e.g. INV-2026-001"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
 
             {/* Amount and Currency */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -118,6 +118,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
 
   // Formatted amount
   const formattedAmount = `${invoice.currencySymbol}${invoice.totalAmount.toLocaleString('en-IN')}`;
+  const agencyAddress = [invoice.agency.address, invoice.agency.city].filter(Boolean).join(', ');
 
   // Execute payment simulation
   const handlePayNow = () => {
@@ -256,9 +257,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       Invoice Reference
                     </div>
                     <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight flex items-center gap-2 mt-0.5">
-                      <span>{invoice.id}</span>
+                      <span>{invoice.invoiceNumber || invoice.id}</span>
                       <button
-                        onClick={() => copyToClipboard(invoice.id, 'invoiceId')}
+                        onClick={() => copyToClipboard(invoice.invoiceNumber || invoice.id, 'invoiceId')}
                         className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
                         title="Copy Invoice ID"
                       >
@@ -292,12 +293,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       <Building2 className="w-3 h-3 text-slate-400" />
                       Billed By (Agency)
                     </div>
-                    <div className="font-bold text-slate-900 text-sm">{invoice.agency.name}</div>
-                    <div className="text-slate-600 leading-snug">{invoice.agency.address}, {invoice.agency.city}</div>
-                    <div className="text-slate-500 font-mono text-[11px] pt-1">
-                      Tax ID / EIN: <span className="font-semibold text-slate-700">{invoice.agency.taxId}</span>
-                    </div>
-                    <div className="text-slate-500">{invoice.agency.email}</div>
+                    {invoice.agency.name && <div className="font-bold text-slate-900 text-sm">{invoice.agency.name}</div>}
+                    {agencyAddress && <div className="text-slate-600 leading-snug">{agencyAddress}</div>}
+                    {invoice.agency.taxId && (
+                      <div className="text-slate-500 font-mono text-[11px] pt-1">
+                        Tax ID / EIN: <span className="font-semibold text-slate-700">{invoice.agency.taxId}</span>
+                      </div>
+                    )}
+                    {invoice.agency.email && <div className="text-slate-500">{invoice.agency.email}</div>}
                   </div>
 
                   {/* Billed To (Client Details) */}
@@ -307,9 +310,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       Billed To (Client)
                     </div>
                     <div className="font-bold text-slate-900 text-sm">{invoice.client.name}</div>
-                    <div className="font-semibold text-slate-700">{invoice.client.company}</div>
-                    <div className="text-slate-500">{invoice.client.email}</div>
-                    <div className="text-slate-500 font-mono text-[11px]">{invoice.client.phone}</div>
+                    {invoice.client.company && <div className="font-semibold text-slate-700">{invoice.client.company}</div>}
+                    {invoice.client.email && <div className="text-slate-500">{invoice.client.email}</div>}
+                    {invoice.client.phone && <div className="text-slate-500 font-mono text-[11px]">{invoice.client.phone}</div>}
                     {invoice.client.gstOrTaxId && (
                       <div className="text-slate-500 font-mono text-[11px]">
                         Client GSTIN: <span className="text-slate-700">{invoice.client.gstOrTaxId}</span>
@@ -698,7 +701,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                     <div className="text-[11px] text-slate-500 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/80 flex items-start gap-2">
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                       <span>
-                        Important: Always specify <strong className="text-slate-800">{invoice.id}</strong> in the payment reference/narrative for instant automated ledger matching.
+                          Important: Always specify <strong className="text-slate-800">{invoice.invoiceNumber || invoice.id}</strong> in the payment reference/narrative for instant automated ledger matching.
                       </span>
                     </div>
                   </div>

@@ -400,7 +400,7 @@ export default function Dashboard() {
   };
 
   // Handler: Dispatch Chase reminder
-  const handleSendChase = async (invoiceId: string) => {
+  const handleSendChase = async (invoiceId: string, channel: 'email' | 'whatsapp') => {
     const target = invoices.find((i) => i.id === invoiceId);
     if (!target) return;
 
@@ -419,8 +419,8 @@ export default function Dashboard() {
       );
       addToast(
         'success',
-        `Chase reminder sent to ${target.client.name}`,
-        `Payment link dispatched to ${target.client.email}`
+        `Chase reminder launched for ${target.client.name}`,
+        `Opened the ${channel === 'email' ? 'email' : 'WhatsApp'} composer with the invoice payment link.`
       );
     } catch (err: any) {
       addToast('error', 'Failed to record chase', err?.message);

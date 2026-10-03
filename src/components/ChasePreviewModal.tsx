@@ -6,7 +6,7 @@ interface ChasePreviewModalProps {
   invoice: InvoiceWithClient | null;
   isOpen: boolean;
   onClose: () => void;
-  onSendChase: (invoiceId: string) => Promise<void>;
+  onSendChase: (invoiceId: string, channel: 'email' | 'whatsapp') => Promise<void>;
   profile?: UserProfile | null;
 }
 
@@ -20,6 +20,7 @@ export const ChasePreviewModal: React.FC<ChasePreviewModalProps> = ({
   const [activeChannel, setActiveChannel] = useState<'email' | 'whatsapp'>('email');
   const [sending, setSending] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [dispatchError, setDispatchError] = useState('');
 
   if (!isOpen || !invoice) return null;
 
@@ -37,7 +38,13 @@ export const ChasePreviewModal: React.FC<ChasePreviewModalProps> = ({
     .filter(Boolean)
     .join(' | ');
 
-  const paymentLink = invoice.payment_link || profile?.payment_gateway_url || `https://duefox.co/pay/${invoice.id}`;
+  const generatedPaymentLink = `${window.location.origin}/pay/${encodeURIComponent(invoice.id)}`;
+  const invoicePaymentLink = invoice.payment_link?.trim();
+  const isGeneratedDueFoxLink = Boolean(invoicePaymentLink && (
+    invoicePaymentLink.startsWith(`${window.location.origin}/pay/`) ||
+    /^https?:\/\/(?:pay\.)?duefox\.co\/(?:pay|inv)\//i.test(invoicePaymentLink)
+  ));
+  const paymentLink = (invoicePaymentLink && !isGeneratedDueFoxLink ? invoicePaymentLink : '') || profile?.payment_gateway_url?.trim() || generatedPaymentLink;
   const wireSection =
     (invoice.amount >= 1000 || isEscalated) && profile?.bank_name && profile?.bank_account_number
       ? `\n\n--- Bank Wire Transfer Details (High-Ticket Remittance) ---\nBeneficiary: ${profile.bank_holder_name || companyName}\nBank: ${profile.bank_name}\nAccount / IBAN: ${profile.bank_account_number}\nSWIFT / BIC: ${profile.bank_swift_bic || 'N/A'}${profile.bank_routing_wise ? `\nRouting / Wise: ${profile.bank_routing_wise}` : ''}\n-------------------------------------------------------------`
@@ -85,10 +92,23 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
     : `👋 Hi ${invoice.client.name}, friendly reminder from *${companyName}* that invoice ${invoice.invoice_number} (${formattedAmount}) was due on ${invoice.due_date}. You can pay directly here: ${paymentLink} Thanks!`;
 
   const handleSend = async () => {
+    setDispatchError('');
+    const dispatchUrl = activeChannel === 'email'
+      ? `mailto:${encodeURIComponent(invoice.client.email)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+      : `https://wa.me/${(invoice.client.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
+
+    if (activeChannel === 'whatsapp' && !invoice.client.phone?.replace(/\D/g, '')) {
+      setDispatchError('Add a client phone number before sending a WhatsApp reminder.');
+      return;
+    }
+
     try {
       setSending(true);
-      await onSendChase(invoice.id);
+      window.open(dispatchUrl, '_blank', 'noopener,noreferrer');
+      await onSendChase(invoice.id, activeChannel);
       onClose();
+    } catch (error: any) {
+      setDispatchError(error?.message || 'Unable to launch the reminder. Please try again.');
     } finally {
       setSending(false);
     }
@@ -200,9 +220,14 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
           )}
 
           {/* Quick Payment Link Box */}
+          {dispatchError && (
+            <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+              {dispatchError}
+            </div>
+          )}
           <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200">
             <span className="text-xs text-slate-600 truncate mr-2 font-mono">
-              {invoice.payment_link || `https://pay.duefox.co/inv/${invoice.invoice_number}`}
+              {paymentLink}
             </span>
             <button
               type="button"

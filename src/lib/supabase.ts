@@ -1203,6 +1203,7 @@ class SupabaseService {
             company_address: data.company_address || '',
             tax_id: data.tax_id || '',
             payment_gateway_url: data.payment_gateway_url || '',
+            upi_id: data.upi_id || '',
             bank_holder_name: data.bank_holder_name || '',
             bank_name: data.bank_name || '',
             bank_account_number: data.bank_account_number || '',
@@ -1231,6 +1232,7 @@ class SupabaseService {
       company_address: '',
       tax_id: '',
       payment_gateway_url: '',
+      upi_id: '',
       bank_holder_name: '',
       bank_name: '',
       bank_account_number: '',
@@ -1276,6 +1278,7 @@ class SupabaseService {
           company_address: profile.company_address || null,
           tax_id: profile.tax_id || null,
           payment_gateway_url: profile.payment_gateway_url || null,
+          upi_id: profile.upi_id || null,
           bank_holder_name: profile.bank_holder_name || null,
           bank_name: profile.bank_name || null,
           bank_account_number: profile.bank_account_number || null,
@@ -1312,6 +1315,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   company_address TEXT,
   tax_id TEXT,
   payment_gateway_url TEXT,
+  upi_id TEXT,
   bank_holder_name TEXT,
   bank_name TEXT,
   bank_account_number TEXT,
@@ -1321,6 +1325,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   plan_status TEXT DEFAULT 'Active',
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS upi_id TEXT;
 
 -- 2. Create Clients Table
 CREATE TABLE IF NOT EXISTS public.clients (

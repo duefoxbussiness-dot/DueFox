@@ -697,10 +697,11 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                           <button
                             type="button"
                             onClick={() => copyToClipboard(upiId, 'upi')}
-                            className="text-slate-500 hover:text-slate-900 cursor-pointer"
-                            aria-label="Copy creator UPI ID"
+                            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                            aria-label="Copy UPI ID"
                           >
                             {copiedField === 'upi' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                            <span>{copiedField === 'upi' ? 'Copied' : 'Copy UPI ID'}</span>
                           </button>
                         </div>
                       ) : (

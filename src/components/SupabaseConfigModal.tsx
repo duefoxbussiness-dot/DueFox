@@ -313,6 +313,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   company_address TEXT,
   tax_id TEXT,
   payment_gateway_url TEXT,
+  upi_id TEXT,
   bank_holder_name TEXT,
   bank_name TEXT,
   bank_account_number TEXT,
@@ -321,6 +322,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   plan TEXT DEFAULT 'free',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS upi_id TEXT;
 
 -- 4. Enable Row Level Security (RLS) with open prototype policies
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;

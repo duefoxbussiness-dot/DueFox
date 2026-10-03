@@ -31,7 +31,7 @@ function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | nu
       return '';
     }
   };
-  const upiId = (profile as (UserProfile & { upi_id?: string }) | null)?.upi_id?.trim() ||
+  const upiId = profile?.upi_id?.trim() ||
     extractUpiId(savedGatewayUrl) || extractUpiId(invoicePaymentLink);
   const paymentGatewayUrl = savedGatewayUrl.toLowerCase().startsWith('upi://') ? '' : savedGatewayUrl;
   const description = invoice.notes?.trim() || 'Professional services';

@@ -46,6 +46,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
   // Tab 2: Global Payment Methods
   const [paymentGatewayUrl, setPaymentGatewayUrl] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [bankHolderName, setBankHolderName] = useState('');
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
@@ -70,6 +71,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       setTaxId(isDemoMode ? '' : profile.tax_id || '');
 
       setPaymentGatewayUrl(isDemoMode ? '' : profile.payment_gateway_url || '');
+      setUpiId(isDemoMode ? '' : profile.upi_id || '');
       setBankHolderName(isDemoMode ? '' : profile.bank_holder_name || '');
       setBankName(isDemoMode ? '' : profile.bank_name || '');
       setBankAccountNumber(isDemoMode ? '' : profile.bank_account_number || '');
@@ -120,6 +122,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         company_address: companyAddress.trim() || undefined,
         tax_id: taxId.trim() || undefined,
         payment_gateway_url: paymentGatewayUrl.trim() || undefined,
+        upi_id: upiId.trim() || undefined,
         bank_holder_name: bankHolderName.trim() || undefined,
         bank_name: bankName.trim() || undefined,
         bank_account_number: bankAccountNumber.trim() || undefined,
@@ -423,6 +426,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <p className="text-[11px] text-slate-500">
                   ⚡ When set, new invoices automatically use this gateway link unless a customized link is specified.
                 </p>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">UPI ID / VPA</label>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    placeholder="e.g. merchant@upi or 9876543210@paytm"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    className="w-full px-3 py-2 text-sm font-mono bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                  />
+                </div>
               </div>
 
               {/* Bank Wire Transfer Details ($1k+ High-Ticket) */}

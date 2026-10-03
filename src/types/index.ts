@@ -23,6 +23,7 @@ export interface UserProfile {
 
   // Tab 2: Global Payment Methods
   payment_gateway_url?: string; // Stripe Payment Link / PayPal.me / Custom Gateway URL
+  upi_id?: string;
   bank_holder_name?: string;
   bank_name?: string;
   bank_account_number?: string; // Account Number / IBAN

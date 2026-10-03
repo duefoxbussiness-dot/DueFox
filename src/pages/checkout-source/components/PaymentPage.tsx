@@ -25,7 +25,10 @@ import {
 } from 'lucide-react';
 
 interface PaymentPageProps {
-  invoice: Invoice;
+  invoice: Invoice & {
+    paymentLink?: string;
+    agency: Invoice['agency'] & { paymentGatewayUrl?: string; upiId?: string };
+  };
   statusOverride?: InvoiceStatus;
   isSimulatedPaid?: boolean;
   onResetPaidState?: () => void;
@@ -56,9 +59,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const [saveCard, setSaveCard] = useState(true);
 
   // UPI state
-  const [upiId, setUpiId] = useState(`${invoice.client.name.toLowerCase().replace(/\s+/g, '')}@okaxis`);
-  const [isUpiVerified, setIsUpiVerified] = useState(true);
-  const [showQrExpanded, setShowQrExpanded] = useState(false);
+  const upiId = invoice.agency.upiId || '';
+  const [paymentNotice, setPaymentNotice] = useState('');
+  const [upiPaymentOpened, setUpiPaymentOpened] = useState(false);
 
   // Copy helpers
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -119,27 +122,58 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   // Formatted amount
   const formattedAmount = `${invoice.currencySymbol}${invoice.totalAmount.toLocaleString('en-IN')}`;
   const agencyAddress = [invoice.agency.address, invoice.agency.city].filter(Boolean).join(', ');
+  const bankEntries = [
+    { key: 'holder', label: 'Beneficiary / Account Holder', value: invoice.agency.bankDetails.accountHolder },
+    { key: 'bank', label: 'Bank Name', value: invoice.agency.bankDetails.bankName },
+    { key: 'swift', label: 'SWIFT / BIC', value: invoice.agency.bankDetails.swiftBic },
+    { key: 'iban', label: 'Account Number / IBAN', value: invoice.agency.bankDetails.accountNumber },
+    { key: 'routing', label: 'ACH Routing / IFSC / Wise', value: invoice.agency.bankDetails.routingOrIfsc },
+  ].filter((entry) => Boolean(entry.value));
 
   // Execute payment simulation
   const handlePayNow = () => {
+    setPaymentNotice('');
+    const checkoutUrl = invoice.paymentLink || invoice.agency.paymentGatewayUrl;
+
+    if (activeTab === 'card' && checkoutUrl) {
+      window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      setPaymentNotice('Secure checkout opened in a new tab. Your invoice will update after payment confirmation.');
+      return;
+    }
+
+    if (activeTab === 'upi' && !upiPaymentOpened) {
+      if (!upiId) {
+        if (checkoutUrl) {
+          window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+          setUpiPaymentOpened(true);
+          setPaymentNotice('Secure checkout opened. After completing payment, confirm it here to update the invoice ledger.');
+        } else {
+          setPaymentNotice('The creator has not configured UPI payment details.');
+        }
+        return;
+      }
+
+      const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(invoice.agency.name)}&am=${encodeURIComponent(invoice.totalAmount.toFixed(2))}&cu=${invoice.currency}&tn=${encodeURIComponent(invoice.invoiceNumber || invoice.id)}`;
+      window.open(upiUrl, '_blank', 'noopener,noreferrer');
+      setUpiPaymentOpened(true);
+      setPaymentNotice('UPI payment opened. Complete the transfer, then confirm it below to update the invoice ledger.');
+      return;
+    }
+
     setIsProcessing(true);
-    setProcessingStep('Encrypting transaction tokens...');
+    setProcessingStep(activeTab === 'bank' ? 'Recording remittance confirmation...' : 'Preparing payment confirmation...');
 
     setTimeout(() => {
-      setProcessingStep('Authorizing with DueFox Vault gateway...');
+      setProcessingStep('Updating the invoice ledger...');
     }, 600);
-
-    setTimeout(() => {
-      setProcessingStep('Verifying settlement confirmation...');
-    }, 1200);
 
     setTimeout(() => {
       const selectedMethodName =
         activeTab === 'card'
           ? `Credit Card (${getCardBrand(cardNumber) || 'Card'} •••• ${cardNumber.replace(/\s/g, '').slice(-4) || '4242'})`
           : activeTab === 'upi'
-          ? `UPI (${upiId || 'Instant VPA'})`
-          : 'Direct Bank Wire (ACH/NEFT)';
+            ? `UPI (${upiId})`
+            : 'Direct Bank Wire (ACH/NEFT)';
 
       const newTxn = {
         id: 'TXN_DF_' + Math.floor(10000000000 + Math.random() * 90000000000),
@@ -156,6 +190,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
       setTransactionData(newTxn);
       setIsProcessing(false);
       setIsPaid(true);
+      setPaymentNotice('Payment confirmation recorded. The invoice status is now settled.');
 
       if (onPaymentComplete) {
         onPaymentComplete({
@@ -168,6 +203,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   };
 
   const handleReset = () => {
+    if (invoice.status === 'paid' && currentStatus === 'paid') return;
     setIsPaid(false);
     if (onResetPaidState) onResetPaidState();
   };
@@ -604,98 +640,36 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       </span>
                     </div>
 
-                    {/* Beneficiary Name */}
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
-                      <div className="flex justify-between items-center text-slate-400 text-[11px]">
-                        <span>Beneficiary / Account Holder</span>
-                        <button
-                          onClick={() => copyToClipboard(invoice.agency.bankDetails.accountHolder, 'holder')}
-                          className="hover:text-slate-800 cursor-pointer"
-                        >
-                          {copiedField === 'holder' ? (
-                            <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Copied
-                            </span>
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      <div className="font-bold text-slate-900 font-sans">
-                        {invoice.agency.bankDetails.accountHolder}
-                      </div>
-                    </div>
-
-                    {/* Bank Name & Routing */}
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
-                      <div className="flex justify-between items-center text-slate-400 text-[11px]">
-                        <span>Bank Name</span>
-                        <span className="font-medium text-slate-600">{invoice.agency.bankDetails.bankName}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-1 border-t border-slate-200/60">
-                        <span className="text-slate-400 text-[11px]">SWIFT / BIC</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-slate-900">
-                            {invoice.agency.bankDetails.swiftBic}
-                          </span>
-                          <button
-                            onClick={() => copyToClipboard(invoice.agency.bankDetails.swiftBic, 'swift')}
-                            className="text-slate-400 hover:text-slate-800 cursor-pointer"
-                          >
-                            {copiedField === 'swift' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Account Number / IBAN */}
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
-                      <div className="flex justify-between items-center text-slate-400 text-[11px]">
-                        <span>Account Number / IBAN</span>
-                        <button
-                          onClick={() => copyToClipboard(invoice.agency.bankDetails.accountNumber, 'iban')}
-                          className="hover:text-slate-800 cursor-pointer"
-                        >
-                          {copiedField === 'iban' ? (
-                            <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Copied
-                            </span>
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      <div className="font-bold font-mono text-slate-900 text-sm tracking-wide">
-                        {invoice.agency.bankDetails.accountNumber}
-                      </div>
-                    </div>
-
-                    {/* Wise Tag / Routing / IFSC */}
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
-                      <div className="flex justify-between items-center text-slate-400 text-[11px]">
-                        <span>ACH Routing / IFSC Code</span>
-                        <button
-                          onClick={() => copyToClipboard(invoice.agency.bankDetails.routingOrIfsc, 'routing')}
-                          className="hover:text-slate-800 cursor-pointer"
-                        >
-                          {copiedField === 'routing' ? (
-                            <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Copied
-                            </span>
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      <div className="font-bold font-mono text-slate-900">
-                        {invoice.agency.bankDetails.routingOrIfsc}
+                    {bankEntries.length > 0 ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {bankEntries.map((entry) => (
+                          <div key={entry.key} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                            <div className="min-w-0">
+                              <div className="text-slate-400 text-[11px]">{entry.label}</div>
+                              <div className="font-semibold text-slate-900 break-all">{entry.value}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(entry.value, entry.key)}
+                              className="shrink-0 text-slate-400 hover:text-slate-800 cursor-pointer"
+                              aria-label={`Copy ${entry.label}`}
+                            >
+                              {copiedField === entry.key ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        ))}
                         {invoice.agency.bankDetails.wiseTag && (
-                          <span className="ml-2 font-normal text-slate-500 font-sans text-xs">
-                            · Wise: {invoice.agency.bankDetails.wiseTag}
-                          </span>
+                          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl sm:col-span-2">
+                            <div className="text-slate-400 text-[11px]">Wise</div>
+                            <div className="font-semibold text-slate-900">{invoice.agency.bankDetails.wiseTag}</div>
+                          </div>
                         )}
                       </div>
-                    </div>
+                    ) : (
+                      <p className="p-3 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl">
+                        The creator has not configured wire transfer details.
+                      </p>
+                    )}
 
                     {/* Narrative notice */}
                     <div className="text-[11px] text-slate-500 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/80 flex items-start gap-2">
@@ -712,108 +686,27 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 {/* -------------------------------------------------- */}
                 {activeTab === 'upi' && (
                   <div className="space-y-4 animate-in fade-in duration-200 text-xs">
-                    {/* Instant QR Code Box */}
-                    <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-center space-y-3">
-                      <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                        <span>⚡ Instant UPI Zero Transaction Fee</span>
+                    <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+                      <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                        <Smartphone className="w-4 h-4 text-emerald-600" />
+                        Creator UPI payment details
                       </div>
-
-                      {/* Dynamic Simulated QR SVG */}
-                      <div className="relative mx-auto w-40 h-40 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-center">
-                        <svg
-                          viewBox="0 0 100 100"
-                          className="w-full h-full text-slate-900"
-                          fill="currentColor"
-                        >
-                          {/* Corner Markers */}
-                          <rect x="0" y="0" width="28" height="28" fill="#0F172A" rx="4" />
-                          <rect x="4" y="4" width="20" height="20" fill="white" rx="2" />
-                          <rect x="8" y="8" width="12" height="12" fill="#FF5722" rx="2" />
-
-                          <rect x="72" y="0" width="28" height="28" fill="#0F172A" rx="4" />
-                          <rect x="76" y="4" width="20" height="20" fill="white" rx="2" />
-                          <rect x="80" y="8" width="12" height="12" fill="#FF5722" rx="2" />
-
-                          <rect x="0" y="72" width="28" height="28" fill="#0F172A" rx="4" />
-                          <rect x="4" y="76" width="20" height="20" fill="white" rx="2" />
-                          <rect x="8" y="80" width="12" height="12" fill="#FF5722" rx="2" />
-
-                          {/* Pattern Blocks */}
-                          <rect x="36" y="8" width="8" height="8" fill="#0F172A" />
-                          <rect x="52" y="8" width="12" height="6" fill="#0F172A" />
-                          <rect x="36" y="24" width="28" height="6" fill="#0F172A" />
-                          <rect x="8" y="36" width="16" height="8" fill="#0F172A" />
-                          <rect x="32" y="36" width="12" height="12" fill="#FF5722" rx="2" />
-                          <rect x="52" y="36" width="16" height="8" fill="#0F172A" />
-                          <rect x="76" y="36" width="16" height="12" fill="#0F172A" />
-                          <rect x="8" y="52" width="8" height="12" fill="#0F172A" />
-                          <rect x="24" y="52" width="16" height="6" fill="#0F172A" />
-                          <rect x="48" y="52" width="20" height="8" fill="#0F172A" />
-                          <rect x="76" y="56" width="16" height="8" fill="#0F172A" />
-                          <rect x="36" y="68" width="12" height="12" fill="#0F172A" />
-                          <rect x="56" y="68" width="12" height="8" fill="#0F172A" />
-                          <rect x="76" y="72" width="8" height="20" fill="#0F172A" />
-                          <rect x="88" y="80" width="8" height="12" fill="#0F172A" />
-                          <rect x="36" y="88" width="28" height="8" fill="#0F172A" />
-                        </svg>
-
-                        {/* Center Brand Badge on QR */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shadow-xs">
-                            <span className="text-[10px] font-black text-[#FF5722]">DF</span>
-                          </div>
+                      {upiId ? (
+                        <div className="flex items-center justify-between gap-3 rounded-lg bg-white border border-slate-200 px-3 py-2.5">
+                          <span className="font-mono text-sm text-slate-900 break-all">{upiId}</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(upiId, 'upi')}
+                            className="text-slate-500 hover:text-slate-900 cursor-pointer"
+                            aria-label="Copy creator UPI ID"
+                          >
+                            {copiedField === 'upi' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                          </button>
                         </div>
-                      </div>
-
-                      <div className="text-[11px] text-slate-500">
-                        Scan with Google Pay, PhonePe, Paytm, BHIM, or CRED
-                      </div>
-                    </div>
-
-                    {/* Enter VPA / UPI ID */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <label className="block text-xs font-semibold text-slate-700">
-                          Or Enter Your UPI ID (VPA)
-                        </label>
-                        {isUpiVerified && (
-                          <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Verified (Vikram Patel)
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <input
-                            type="text"
-                            value={upiId}
-                            onChange={(e) => {
-                              setUpiId(e.target.value);
-                              setIsUpiVerified(e.target.value.includes('@'));
-                            }}
-                            placeholder="username@okhdfcbank"
-                            className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF5722]/30 focus:border-[#FF5722]"
-                          />
-                          <Smartphone className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setIsUpiVerified(true)}
-                          className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-                        >
-                          Verify
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Supported Apps Logos Pill */}
-                    <div className="flex items-center justify-center gap-4 text-[10px] text-slate-400 font-medium pt-1">
-                      <span>• GPay</span>
-                      <span>• PhonePe</span>
-                      <span>• Paytm</span>
-                      <span>• Cred UPI</span>
-                      <span>• BHIM</span>
+                      ) : (
+                        <p className="text-slate-500">The creator has not configured a UPI ID. Choose Wire / ACH or use the configured payment link.</p>
+                      )}
+                      <p className="text-[11px] text-slate-500">Amount: {formattedAmount} · Reference: {invoice.invoiceNumber || invoice.id}</p>
                     </div>
                   </div>
                 )}
@@ -837,15 +730,22 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       </>
                     ) : (
                       <>
-                        <span>
-                          {activeTab === 'bank'
-                            ? `Confirm & Record Wire Remittance`
-                            : `Pay ${formattedAmount} Now`}
-                        </span>
+                        <span>{activeTab === 'bank'
+                          ? 'Confirm & Record Wire Remittance'
+                          : activeTab === 'upi'
+                            ? upiPaymentOpened ? 'Confirm UPI Payment' : 'Open UPI Payment'
+                            : invoice.paymentLink || invoice.agency.paymentGatewayUrl
+                              ? 'Continue to Secure Checkout'
+                              : `Pay ${formattedAmount} Now`}</span>
                         <Lock className="w-4 h-4 ml-0.5" />
                       </>
                     )}
                   </button>
+                  {paymentNotice && (
+                    <p role="status" className="mt-3 text-center text-xs text-slate-600" aria-live="polite">
+                      {paymentNotice}
+                    </p>
+                  )}
                 </div>
 
                 {/* -------------------------------------------------- */}

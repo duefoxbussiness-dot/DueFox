@@ -8,9 +8,32 @@ import { supabaseService } from '../lib/supabase';
 import { InvoiceWithClient, UserProfile } from '../types';
 import './checkout-source/index.css';
 
-function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | null): CheckoutInvoice {
+type CheckoutInvoiceWithPaymentDetails = CheckoutInvoice & {
+  paymentLink?: string;
+  agency: CheckoutInvoice['agency'] & {
+    paymentGatewayUrl?: string;
+    upiId?: string;
+  };
+};
+
+function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | null): CheckoutInvoiceWithPaymentDetails {
   const currencySymbol = invoice.currency === 'INR' ? '₹' : invoice.currency === 'EUR' ? '€' : invoice.currency === 'GBP' ? '£' : '$';
   const companyName = profile?.company_name || profile?.full_name || '';
+  const savedGatewayUrl = profile?.payment_gateway_url?.trim() || '';
+  const invoicePaymentLink = invoice.payment_link?.trim() || '';
+  const isGeneratedDueFoxLink = invoicePaymentLink.startsWith(`${window.location.origin}/pay/`) ||
+    /^https?:\/\/(?:pay\.)?duefox\.co\/(?:pay|inv)\//i.test(invoicePaymentLink);
+  const extractUpiId = (url: string) => {
+    if (!url.toLowerCase().startsWith('upi://')) return '';
+    try {
+      return new URL(url).searchParams.get('pa') || '';
+    } catch {
+      return '';
+    }
+  };
+  const upiId = (profile as (UserProfile & { upi_id?: string }) | null)?.upi_id?.trim() ||
+    extractUpiId(savedGatewayUrl) || extractUpiId(invoicePaymentLink);
+  const paymentGatewayUrl = savedGatewayUrl.toLowerCase().startsWith('upi://') ? '' : savedGatewayUrl;
   const description = invoice.notes?.trim() || 'Professional services';
   const dueDate = new Date(`${invoice.due_date}T00:00:00`);
   const issueDate = new Date(invoice.created_at);
@@ -25,6 +48,7 @@ function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | nu
   return {
     id: invoice.id,
     invoiceNumber: invoice.invoice_number,
+    paymentLink: invoicePaymentLink && !isGeneratedDueFoxLink && !invoicePaymentLink.toLowerCase().startsWith('upi://') ? invoicePaymentLink : undefined,
     client: {
       name: invoice.client.name,
       company: invoice.client.company || '',
@@ -34,6 +58,8 @@ function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | nu
     agency: {
       name: companyName,
       legalName: companyName,
+      paymentGatewayUrl,
+      upiId,
       representative: profile?.full_name || '',
       email: profile?.business_email || '',
       phone: profile?.phone || '',
@@ -46,7 +72,8 @@ function toCheckoutInvoice(invoice: InvoiceWithClient, profile: UserProfile | nu
         bankName: profile?.bank_name || '',
         accountNumber: profile?.bank_account_number || '',
         swiftBic: profile?.bank_swift_bic || '',
-        routingOrIfsc: profile?.bank_routing_wise || '',
+        routingOrIfsc: profile?.bank_routing_wise?.startsWith('@') ? '' : profile?.bank_routing_wise || '',
+        wiseTag: profile?.bank_routing_wise?.startsWith('@') ? profile.bank_routing_wise : undefined,
       },
     },
     issueDate: Number.isNaN(issueDate.getTime()) ? '' : issueDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
@@ -86,6 +113,7 @@ export default function PaymentPage() {
           const checkoutInvoice = toCheckoutInvoice(result.invoice, result.profile);
           setSelectedInvoice(checkoutInvoice);
           setStatusOverride(checkoutInvoice.status);
+          setIsSimulatedPaid(checkoutInvoice.status === 'paid');
           return;
         }
 
@@ -93,8 +121,10 @@ export default function PaymentPage() {
         if (demoInvoice) {
           setSelectedInvoice(demoInvoice);
           setStatusOverride(demoInvoice.status);
+          setIsSimulatedPaid(demoInvoice.status === 'paid');
         } else {
           setSelectedInvoice(null);
+          setIsSimulatedPaid(false);
           setLoadError('This invoice could not be found or is not publicly available.');
         }
       })
@@ -104,8 +134,10 @@ export default function PaymentPage() {
         if (demoInvoice) {
           setSelectedInvoice(demoInvoice);
           setStatusOverride(demoInvoice.status);
+          setIsSimulatedPaid(demoInvoice.status === 'paid');
         } else {
           setSelectedInvoice(null);
+          setIsSimulatedPaid(false);
           setLoadError('Unable to load this invoice. Please try again later.');
         }
       })
@@ -151,9 +183,21 @@ export default function PaymentPage() {
           setIsSimulatedPaid(false);
           setStatusOverride(selectedInvoice.status);
         }}
-        onPaymentComplete={(info) => {
+        onPaymentComplete={async (info) => {
+          if (!isDemoInvoice) {
+            await supabaseService.updateInvoiceStatus(selectedInvoice.id, 'paid');
+          }
           setIsSimulatedPaid(true);
           setStatusOverride('paid');
+          setSelectedInvoice((currentInvoice) => currentInvoice ? {
+            ...currentInvoice,
+            status: 'paid',
+            paymentDetails: {
+              transactionId: info.transactionId,
+              method: info.method,
+              paidAt: info.date,
+            },
+          } : currentInvoice);
         }}
       />
     </div>

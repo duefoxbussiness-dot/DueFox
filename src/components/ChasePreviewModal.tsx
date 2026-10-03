@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Send, Mail, MessageSquare, ExternalLink, Check, Copy, AlertTriangle } from 'lucide-react';
+import { X, Send, Mail, MessageSquare, ExternalLink, Check, Copy, AlertTriangle, Loader2 } from 'lucide-react';
 import { InvoiceWithClient, UserProfile } from '../types';
+import { supabaseService } from '../lib/supabase';
 
 interface ChasePreviewModalProps {
   invoice: InvoiceWithClient | null;
@@ -21,6 +22,8 @@ export const ChasePreviewModal: React.FC<ChasePreviewModalProps> = ({
   const [sending, setSending] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [dispatchError, setDispatchError] = useState('');
+  const [dispatchSucceeded, setDispatchSucceeded] = useState(false);
+  const [dispatchedCount, setDispatchedCount] = useState<{ invoiceId: string; count: number } | null>(null);
 
   if (!isOpen || !invoice) return null;
 
@@ -93,9 +96,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
 
   const handleSend = async () => {
     setDispatchError('');
-    const dispatchUrl = activeChannel === 'email'
-      ? `mailto:${encodeURIComponent(invoice.client.email)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-      : `https://wa.me/${(invoice.client.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    setDispatchSucceeded(false);
 
     if (activeChannel === 'whatsapp' && !invoice.client.phone?.replace(/\D/g, '')) {
       setDispatchError('Add a client phone number before sending a WhatsApp reminder.');
@@ -104,9 +105,63 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
 
     try {
       setSending(true);
-      window.open(dispatchUrl, '_blank', 'noopener,noreferrer');
+      const config = supabaseService.getConfig();
+      const webhookUrl = import.meta.env.VITE_CHASE_WEBHOOK_URL ||
+        (config.url ? `${config.url.replace(/\/$/, '')}/functions/v1/dispatch-chase` : '');
+      if (!webhookUrl) {
+        throw new Error('Chase dispatch is not configured. Set VITE_CHASE_WEBHOOK_URL or deploy the dispatch-chase Supabase function.');
+      }
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (config.anonKey) {
+        headers.apikey = config.anonKey;
+        headers.Authorization = `Bearer ${config.anonKey}`;
+      }
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          event: 'chase.dispatch',
+          channel: activeChannel,
+          invoice: {
+            id: invoice.id,
+            user_id: invoice.user_id,
+            invoice_number: invoice.invoice_number,
+            amount: invoice.amount,
+            currency: invoice.currency,
+            due_date: invoice.due_date,
+            days_overdue: invoice.days_overdue,
+            payment_link: paymentLink,
+          },
+          recipient: {
+            name: invoice.client.name,
+            email: invoice.client.email,
+            phone: invoice.client.phone,
+          },
+          sender: {
+            name: senderName,
+            company: companyName,
+            email: profile?.business_email || '',
+          },
+          message: activeChannel === 'email'
+            ? { subject: emailSubject, body: emailBody }
+            : { body: whatsappMessage },
+        }),
+      });
+
+      if (!response.ok) {
+        const responseMessage = await response.text();
+        throw new Error(responseMessage || `Dispatch endpoint returned ${response.status}.`);
+      }
+
       await onSendChase(invoice.id, activeChannel);
-      onClose();
+      setDispatchSucceeded(true);
+      setDispatchedCount({ invoiceId: invoice.id, count: invoice.chase_count + 1 });
+      window.setTimeout(() => {
+        setDispatchSucceeded(false);
+        onClose();
+      }, 1800);
     } catch (error: any) {
       setDispatchError(error?.message || 'Unable to launch the reminder. Please try again.');
     } finally {
@@ -122,6 +177,12 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4">
+      {dispatchSucceeded && (
+        <div role="status" aria-live="polite" className="fixed top-5 right-5 z-60 flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg">
+          <Check className="h-4 w-4" />
+          Chase reminder sent successfully!
+        </div>
+      )}
       <div
         className="relative bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
@@ -243,7 +304,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
         {/* Footer */}
         <div className="border-t border-slate-200 px-6 py-3 bg-slate-50/80 flex items-center justify-between">
           <span className="text-xs text-slate-500">
-            Current chase count: <strong className="font-mono text-slate-800">{invoice.chase_count}</strong>
+            Current chase count: <strong className="font-mono text-slate-800">{Math.max(invoice.chase_count, dispatchedCount?.invoiceId === invoice.id ? dispatchedCount.count : 0)}</strong>
           </span>
 
           <div className="flex items-center gap-2">
@@ -260,7 +321,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
               disabled={sending}
               className="px-4 py-1.5 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 active:bg-orange-700 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
             >
-              <Send className="w-3.5 h-3.5" />
+              {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               <span>{sending ? 'Dispatching...' : 'Dispatch Chase Now'}</span>
             </button>
           </div>

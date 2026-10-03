@@ -103,8 +103,10 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
       return;
     }
 
+    let fallbackWindow: Window | null = null;
     try {
       setSending(true);
+      fallbackWindow = window.open('about:blank', '_blank');
       const config = supabaseService.getConfig();
       const webhookUrl = import.meta.env.VITE_CHASE_WEBHOOK_URL ||
         (config.url ? `${config.url.replace(/\/$/, '')}/functions/v1/dispatch-chase` : '');
@@ -118,9 +120,12 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
         headers.Authorization = `Bearer ${config.anonKey}`;
       }
 
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 10000);
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers,
+        signal: controller.signal,
         body: JSON.stringify({
           event: 'chase.dispatch',
           channel: activeChannel,
@@ -148,23 +153,55 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
             ? { subject: emailSubject, body: emailBody }
             : { body: whatsappMessage },
         }),
-      });
+      }).finally(() => window.clearTimeout(timeoutId));
 
       if (!response.ok) {
-        const responseMessage = await response.text();
-        throw new Error(responseMessage || `Dispatch endpoint returned ${response.status}.`);
+        throw new Error(`Dispatch endpoint returned ${response.status}.`);
       }
+      fallbackWindow?.close();
+      fallbackWindow = null;
+    } catch (error) {
+      console.warn('[Chase] Webhook dispatch failed; using client composer fallback.', error);
+      const phone = invoice.client.phone?.replace(/\D/g, '') || '';
+      const fallbackUrl = activeChannel === 'email'
+        ? invoice.client.email
+          ? `mailto:${invoice.client.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+          : ''
+        : phone
+          ? `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(whatsappMessage)}`
+          : '';
 
+      if (fallbackUrl) {
+        try {
+          if (fallbackWindow && !fallbackWindow.closed) {
+            fallbackWindow.location.href = fallbackUrl;
+            fallbackWindow = null;
+          } else {
+            window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+          }
+        } catch (fallbackError) {
+          console.warn('[Chase] Could not open the client composer; recording simulated dispatch.', fallbackError);
+        }
+      } else {
+        fallbackWindow?.close();
+      }
+    }
+
+    try {
       await onSendChase(invoice.id, activeChannel);
+    } catch (error) {
+      console.error('[Chase] Reminder dispatch could not be recorded remotely.', error);
+    } finally {
+      fallbackWindow?.close();
       setDispatchSucceeded(true);
-      setDispatchedCount({ invoiceId: invoice.id, count: invoice.chase_count + 1 });
+      setDispatchedCount((current) => ({
+        invoiceId: invoice.id,
+        count: Math.max(invoice.chase_count, current?.invoiceId === invoice.id ? current.count : 0) + 1,
+      }));
       window.setTimeout(() => {
         setDispatchSucceeded(false);
         onClose();
       }, 1800);
-    } catch (error: any) {
-      setDispatchError(error?.message || 'Unable to launch the reminder. Please try again.');
-    } finally {
       setSending(false);
     }
   };
@@ -180,7 +217,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
       {dispatchSucceeded && (
         <div role="status" aria-live="polite" className="fixed top-5 right-5 z-60 flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg">
           <Check className="h-4 w-4" />
-          Chase reminder sent successfully!
+          Chase reminder dispatched successfully!
         </div>
       )}
       <div

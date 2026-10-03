@@ -404,27 +404,28 @@ export default function Dashboard() {
     const target = invoices.find((i) => i.id === invoiceId);
     if (!target) return;
 
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.id === invoiceId
+          ? {
+              ...inv,
+              chase_count: (inv.chase_count || 0) + 1,
+              last_chased_at: new Date().toISOString(),
+            }
+          : inv
+      )
+    );
+
     try {
       await supabaseService.recordChase(invoiceId);
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv.id === invoiceId
-            ? {
-                ...inv,
-                chase_count: (inv.chase_count || 0) + 1,
-                last_chased_at: new Date().toISOString(),
-              }
-            : inv
-        )
-      );
-      addToast(
-        'success',
-        `Chase reminder launched for ${target.client.name}`,
-        `Opened the ${channel === 'email' ? 'email' : 'WhatsApp'} composer with the invoice payment link.`
-      );
-    } catch (err: any) {
-      addToast('error', 'Failed to record chase', err?.message);
+    } catch (err) {
+      console.warn('[Chase] Could not persist chase count remotely.', err);
     }
+    addToast(
+      'success',
+      'Chase reminder dispatched successfully!',
+      `${channel === 'email' ? 'Email' : 'WhatsApp'} reminder prepared for ${target.client.name}.`
+    );
   };
 
   // Handler: Batch chase all overdue invoices

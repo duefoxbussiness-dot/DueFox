@@ -212,7 +212,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const renderStatusPill = () => {
     if (isPaid || currentStatus === 'paid') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
           Paid · Settled & Closed
         </span>
@@ -220,7 +220,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     }
     if (currentStatus === 'overdue') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
           <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
           Overdue · {invoice.daysOverdue} Days Past Due
         </span>
@@ -228,14 +228,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     }
     if (currentStatus === 'due_soon') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
           <Clock className="w-3.5 h-3.5 text-amber-600" />
           Due Soon · Action Required
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">
         <Clock className="w-3.5 h-3.5 text-slate-500" />
         Payment Pending
       </span>
@@ -245,15 +245,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans">
       {/* 2. TOP MINIMALIST HEADER */}
-      <header className="no-print bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <header className="no-print bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-[4.25rem] flex items-center justify-between">
           {/* Left: Brand Logo + Subtle Security Badge */}
           <div className="flex items-center gap-3 sm:gap-4">
             <DueFoxLogo size="md" />
 
             <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
-            <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium">
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold shadow-sm">
               <ShieldCheck className="w-3.5 h-3.5 text-[#FF5722]" />
               <span>Secure Billed via DueFox</span>
             </div>
@@ -267,7 +267,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
       </header>
 
       {/* MAIN VIEWPORT */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-9 md:py-12">
         {/* If in Paid Success State, display Interactive Success Screen */}
         {isPaid ? (
           <PaymentSuccessModal
@@ -279,13 +279,13 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
           />
         ) : (
           /* 3. SPLIT-SCREEN / TWO-COLUMN RESPONSIVE LAYOUT */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-9 items-start">
             {/* ======================================================== */}
             {/* LEFT COLUMN: INVOICE SUMMARY & BREAKDOWN (5 cols on lg) */}
             {/* ======================================================== */}
             <div className="lg:col-span-7 space-y-6">
               {/* Main Invoice Card */}
-              <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8 space-y-6">
+              <div className="bg-white border border-slate-200/90 shadow-md shadow-slate-900/[0.04] rounded-2xl p-6 sm:p-8 space-y-7">
                 {/* Invoice Meta Top Strip */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-slate-100">
                   <div>
@@ -428,7 +428,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 </div>
 
                 {/* Final Due Amount Box */}
-                <div className="bg-slate-900 text-white rounded-xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 border border-slate-700 shadow-lg shadow-slate-900/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Total Payable Balance
@@ -469,7 +469,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
             {/* RIGHT COLUMN: PAYMENT OPTIONS & CHECKOUT CARD (5 cols)   */}
             {/* ======================================================== */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-7 space-y-6 sticky top-24">
+              <div className="bg-white border border-slate-200/90 shadow-md shadow-slate-900/[0.04] rounded-2xl p-6 sm:p-7 space-y-6 sticky top-24">
                 {/* Card Title */}
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 tracking-tight">
@@ -640,7 +640,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                       </span>
                     </div>
 
-                    {bankEntries.length > 0 ? (
+                    {bankEntries.length > 0 || invoice.agency.bankDetails.wiseTag ? (
                       <div className="grid gap-2 sm:grid-cols-2">
                         {bankEntries.map((entry) => (
                           <div key={entry.key} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
@@ -666,9 +666,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                         )}
                       </div>
                     ) : (
-                      <p className="p-3 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl">
-                        The creator has not configured wire transfer details.
-                      </p>
+                      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-amber-950 shadow-sm" role="status">
+                        <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                        <div>
+                          <p className="text-xs font-semibold">Wire transfer details unavailable</p>
+                          <p className="mt-1 text-xs leading-relaxed text-amber-900/80">
+                            The invoice creator has not added bank details yet. Please choose another payment method or contact the creator.
+                          </p>
+                        </div>
+                      </div>
                     )}
 
                     {/* Narrative notice */}
@@ -705,7 +711,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                           </button>
                         </div>
                       ) : (
-                        <p className="text-slate-500">The creator has not configured a UPI ID. Choose Wire / ACH or use the configured payment link.</p>
+                        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-amber-950 shadow-sm" role="status">
+                          <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                          <div>
+                            <p className="text-xs font-semibold">UPI details unavailable</p>
+                            <p className="mt-1 text-xs leading-relaxed text-amber-900/80">
+                              The invoice creator has not added a UPI ID. Choose Wire / ACH or use the configured payment link.
+                            </p>
+                          </div>
+                        </div>
                       )}
                       <p className="text-[11px] text-slate-500">Amount: {formattedAmount} · Reference: {invoice.invoiceNumber || invoice.id}</p>
                     </div>

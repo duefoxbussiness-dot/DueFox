@@ -171,6 +171,24 @@ class SupabaseService {
     return { user: authUser };
   }
 
+  public async resetPasswordForEmail(email: string): Promise<{ error?: string }> {
+    if (!this.client) {
+      return { error: 'Password reset is unavailable while Supabase is not connected.' };
+    }
+
+    try {
+      const { error } = await this.client.auth.resetPasswordForEmail(email.trim().toLowerCase());
+      if (error) {
+        console.error('[Supabase] Password reset request failed:', error);
+        return { error: error.message };
+      }
+      return {};
+    } catch (err: any) {
+      console.error('[Supabase] Password reset request threw an error:', err);
+      return { error: err?.message || 'Unable to send a password reset email.' };
+    }
+  }
+
   // Authentication: Sign Up
   public async signUp(
     email: string,
@@ -1390,4 +1408,3 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.invoices;
 }
 
 export const supabaseService = new SupabaseService();
-

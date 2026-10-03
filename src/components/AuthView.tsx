@@ -25,10 +25,36 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isResetPasswordView, setIsResetPasswordView] = useState(false);
   const [signupConfirmation, setSignupConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMsg(null);
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please provide a valid business email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await supabaseService.resetPasswordForEmail(email);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setSuccessMsg(`If an account exists for ${email.trim()}, a password reset link has been sent.`);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Unable to send a password reset email.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,22 +154,26 @@ export const AuthView: React.FC<AuthViewProps> = ({
           {/* Heading */}
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {tab === 'login' ? 'Welcome Back' : 'Create dueFox Account'}
+              {isResetPasswordView ? 'Reset Your Password' : tab === 'login' ? 'Welcome Back' : 'Create dueFox Account'}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {tab === 'login'
+              {isResetPasswordView
+                ? 'Enter the email associated with your account and we’ll send a reset link.'
+                : tab === 'login'
                 ? 'Sign in to access your invoice chasing engine and ledger'
                 : 'Get started recovering overdue accounts with automated workflows'}
             </p>
           </div>
 
           {/* Tab Switcher */}
-          <div className="grid grid-cols-2 p-1 mb-6 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200 dark:border-slate-700">
+          {!isResetPasswordView && <div className="grid grid-cols-2 p-1 mb-6 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => {
                 setTab('login');
                 setError(null);
+                setSuccessMsg(null);
+                setSignupConfirmation(false);
               }}
               className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 tab === 'login'
@@ -158,6 +188,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
               onClick={() => {
                 setTab('signup');
                 setError(null);
+                setSuccessMsg(null);
+                setSignupConfirmation(false);
               }}
               className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 tab === 'signup'
@@ -167,10 +199,10 @@ export const AuthView: React.FC<AuthViewProps> = ({
             >
               Create Account
             </button>
-          </div>
+          </div>}
 
           {/* Signup Confirmation Alert - Prominent Display */}
-          {signupConfirmation && (
+          {signupConfirmation && !isResetPasswordView && (
             <div className="mb-5 p-4 rounded-xl bg-emerald-500/15 border-2 border-emerald-500/50 text-emerald-950 dark:text-emerald-100 shadow-md animate-in fade-in duration-200">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/25 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5">
@@ -213,8 +245,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {tab === 'signup' && (
+          <form onSubmit={isResetPasswordView ? handlePasswordReset : handleSubmit} className="space-y-4">
+            {!isResetPasswordView && tab === 'signup' && (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Full Name / Company Name
@@ -243,7 +275,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   type="email"
                   required
                   placeholder="demo@gmail.com"
-                  autoComplete="off"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors"
@@ -251,7 +283,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
               </div>
             </div>
 
-            <div>
+            {!isResetPasswordView && <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Password
@@ -286,7 +318,24 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
+            </div>}
+
+            {!isResetPasswordView && tab === 'login' && (
+              <div className="-mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsResetPasswordView(true);
+                    setError(null);
+                    setSuccessMsg(null);
+                    setSignupConfirmation(false);
+                  }}
+                  className="text-xs font-semibold text-electric hover:text-[#F4511E] transition-colors cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
 
             {/* Primary Action Button */}
             <button
@@ -298,15 +347,29 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>{tab === 'login' ? 'Sign In to Dashboard' : 'Create Free Account'}</span>
+                  <span>{isResetPasswordView ? 'Send Reset Link' : tab === 'login' ? 'Sign In to Dashboard' : 'Create Free Account'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
+          {isResetPasswordView && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsResetPasswordView(false);
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className="mt-4 w-full text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              Back to Sign In
+            </button>
+          )}
+
           {/* Divider */}
-          <div className="relative my-5">
+          {!isResetPasswordView && <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200 dark:border-slate-700" />
             </div>
@@ -315,10 +378,10 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 Or quick test with
               </span>
             </div>
-          </div>
+          </div>}
 
           {/* Quick 1-Click Demo Login */}
-          <button
+          {!isResetPasswordView && <button
             type="button"
             onClick={handleQuickDemoLogin}
             disabled={loading}
@@ -326,7 +389,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Instant Demo Login</span>
-          </button>
+          </button>}
 
           {/* Footer security note */}
           <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">

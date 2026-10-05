@@ -14,7 +14,8 @@ import {
   RotateCcw, 
   Trash2, 
   ArrowLeft,
-  Send,
+  Pause,
+  Play,
   ExternalLink,
   ShieldCheck,
   CheckCircle2
@@ -24,7 +25,7 @@ import { Currency, Invoice, BusinessProfile, InvoiceStatus } from './types';
 import { INITIAL_INVOICES } from './data/mockInvoices';
 import { AddInvoiceModal } from './components/AddInvoiceModal';
 import { SettingsModal } from './components/SettingsModal';
-import { SampleEmailWhatsAppModal } from './components/SampleEmailWhatsAppModal';
+import { getNextScheduledCadenceStep, ResumeChaseModal } from '../../components/ResumeChaseModal';
 
 interface DashboardProps {
   onBackToLanding: () => void;
@@ -33,7 +34,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | 'All'>('All');
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'critical' | 'paid'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'critical' | 'paid' | 'paused'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -41,7 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [settingsDefaultTab, setSettingsDefaultTab] = useState<'profile' | 'payment' | 'plan'>('profile');
-  const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [resumeInvoice, setResumeInvoice] = useState<Invoice | null>(null);
 
   // User & Business profile
   const [profile, setProfile] = useState<BusinessProfile>({
@@ -75,6 +76,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
   const pendingCount = invoices.filter((i) => i.status === 'Pending').length;
   const criticalCount = invoices.filter((i) => i.status === 'Critical').length;
   const paidCount = invoices.filter((i) => i.status === 'Paid').length;
+  const pausedCount = invoices.filter((i) => i.status === 'Paused').length;
 
   // Filter list
   const filteredInvoices = invoices.filter((inv) => {
@@ -82,6 +84,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
     if (activeTab === 'pending' && inv.status !== 'Pending') return false;
     if (activeTab === 'critical' && inv.status !== 'Critical') return false;
     if (activeTab === 'paid' && inv.status !== 'Paid') return false;
+    if (activeTab === 'paused' && inv.status !== 'Paused') return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -117,6 +120,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
         return inv;
       })
     );
+  };
+
+  const handlePauseChase = (id: string) => {
+    setInvoices((prev) =>
+      prev.map((inv) => inv.id === id && inv.status !== 'Paid' ? { ...inv, status: 'Paused' } : inv)
+    );
+  };
+
+  const handleResumeChase = async () => {
+    if (!resumeInvoice) return;
+    setInvoices((prev) =>
+      prev.map((inv) => inv.id === resumeInvoice.id ? { ...inv, status: 'Pending' } : inv)
+    );
+    setResumeInvoice(null);
   };
 
   const handleDeleteInvoice = (id: string) => {
@@ -364,6 +381,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                 { id: 'pending', label: `Pending (${pendingCount})` },
                 { id: 'critical', label: `Critical (30+ Days) (${criticalCount})` },
                 { id: 'paid', label: `Paid (${paidCount})` },
+                { id: 'paused', label: `Paused (${pausedCount})` },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -398,6 +416,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                   const isPaid = inv.status === 'Paid';
                   const isCritical = inv.status === 'Critical';
                   const isPending = inv.status === 'Pending';
+                  const isPaused = inv.status === 'Paused';
 
                   return (
                     <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
@@ -410,6 +429,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : isCritical
                                 ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : isPaused
+                                ? 'bg-slate-100 text-slate-700 border border-slate-200'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}
                           >
@@ -479,6 +500,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                             <AlertTriangle className="w-3.5 h-3.5" /> Critical (30+ Days)
                           </span>
                         )}
+                        {isPaused && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <Pause className="w-3.5 h-3.5" /> Paused
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
@@ -502,14 +528,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
                             )}
                           </button>
 
-                          {/* Preview Chase */}
-                          <button
-                            onClick={() => setPreviewInvoice(inv)}
-                            className="border border-slate-200 hover:bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-xl font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <Send className="w-3 h-3 text-[#FF5722]" />
-                            <span className="hidden sm:inline">Chase</span>
-                          </button>
+                          {!isPaid && !isPaused && (
+                            <button
+                              onClick={() => handlePauseChase(inv.id)}
+                              title="Pause automated invoice chasing"
+                              className="border border-slate-200 hover:bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-xl font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Pause className="w-3 h-3" />
+                              <span className="hidden sm:inline">Pause Chase</span>
+                            </button>
+                          )}
+                          {!isPaid && isPaused && (
+                            <button
+                              onClick={() => setResumeInvoice(inv)}
+                              className="bg-[#FF5722] hover:bg-[#F4511E] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Play className="w-3 h-3" />
+                              <span className="hidden sm:inline">Resume Chase</span>
+                            </button>
+                          )}
 
                           {/* Reopen / Mark as Paid */}
                           <button
@@ -568,11 +605,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
         defaultTab={settingsDefaultTab}
       />
 
-      {/* Sample WhatsApp / Email Chase Modal */}
-      <SampleEmailWhatsAppModal
-        isOpen={!!previewInvoice}
-        onClose={() => setPreviewInvoice(null)}
-        invoice={previewInvoice || undefined}
+      <ResumeChaseModal
+        isOpen={Boolean(resumeInvoice)}
+        clientName={resumeInvoice?.clientName || ''}
+        email={resumeInvoice?.email || ''}
+        nextCadenceStep={getNextScheduledCadenceStep(resumeInvoice?.chaseSchedule)}
+        onClose={() => setResumeInvoice(null)}
+        onConfirm={handleResumeChase}
       />
     </div>
   );

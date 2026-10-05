@@ -298,9 +298,33 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   chase_count INTEGER DEFAULT 0,
   last_chased_at TIMESTAMPTZ,
   chase_schedule TEXT DEFAULT 'standard',
+  resumed_at TIMESTAMPTZ,
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS resumed_at TIMESTAMPTZ;
+ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
+ALTER TABLE public.invoices ADD CONSTRAINT invoices_status_check
+  CHECK (status IN ('pending', 'escalated', 'paid', 'paused'));
+
+CREATE OR REPLACE FUNCTION public.set_invoice_resumed_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.status = 'paused' AND NEW.status = 'pending' THEN
+    NEW.resumed_at := CURRENT_TIMESTAMP;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS invoices_set_resumed_at ON public.invoices;
+CREATE TRIGGER invoices_set_resumed_at
+  BEFORE UPDATE ON public.invoices
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_invoice_resumed_at();
 
 -- 3. Create Profiles Table (for Company & Payment Settings)
 CREATE TABLE IF NOT EXISTS public.profiles (

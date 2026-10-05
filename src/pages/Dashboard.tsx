@@ -16,6 +16,7 @@ import { StatCards } from '../components/StatCards';
 import { InvoiceTable } from '../components/InvoiceTable';
 import { AddInvoiceModal } from '../components/AddInvoiceModal';
 import { ChasePreviewModal } from '../components/ChasePreviewModal';
+import { getNextScheduledCadenceStep, ResumeChaseModal } from '../components/ResumeChaseModal';
 import { ProfileModal } from '../components/ProfileModal';
 import { SupabaseConfigModal } from '../components/SupabaseConfigModal';
 import { AuthView } from '../components/AuthView';
@@ -131,6 +132,7 @@ export default function Dashboard() {
   const [editingInvoice, setEditingInvoice] = useState<InvoiceWithClient | null>(null);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [chaseInvoice, setChaseInvoice] = useState<InvoiceWithClient | null>(null);
+  const [resumeInvoice, setResumeInvoice] = useState<InvoiceWithClient | null>(null);
 
   // Supabase Config state
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>(() =>
@@ -285,7 +287,7 @@ export default function Dashboard() {
       } else {
         if (inv.status === 'escalated') {
           escalatedCount++;
-        } else {
+        } else if (inv.status !== 'paused') {
           pendingCount++;
         }
 
@@ -383,6 +385,31 @@ export default function Dashboard() {
     }
   };
 
+  const handlePauseChase = async (invoice: InvoiceWithClient) => {
+    try {
+      await supabaseService.updateInvoiceStatus(invoice.id, 'paused');
+      setInvoices((prev) =>
+        prev.map((inv) => (inv.id === invoice.id ? { ...inv, status: 'paused' } : inv))
+      );
+      addToast('info', 'Invoice chasing paused', `Chasing is paused for ${invoice.client.name}.`);
+    } catch (err: any) {
+      addToast('error', 'Could not pause invoice chasing', err?.message);
+    }
+  };
+
+  const handleResumeChase = async () => {
+    if (!resumeInvoice) return;
+    const target = resumeInvoice;
+    const resumedAt = await supabaseService.resumeInvoiceChasing(target.id);
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.id === target.id ? { ...inv, status: 'pending', resumed_at: resumedAt } : inv
+      )
+    );
+    setResumeInvoice(null);
+    addToast('success', 'Invoice chasing resumed', `A fresh chase sequence starts today for ${target.client.name}.`);
+  };
+
   // Handler: Delete invoice
   const handleDeleteInvoice = async (id: string) => {
     const target = invoices.find((i) => i.id === id);
@@ -430,7 +457,7 @@ export default function Dashboard() {
 
   // Handler: Batch chase all overdue invoices
   const handleBatchChase = async () => {
-    const overdueInvoices = invoices.filter((i) => i.status !== 'paid');
+    const overdueInvoices = invoices.filter((i) => i.status !== 'paid' && i.status !== 'paused');
     if (overdueInvoices.length === 0) return;
 
     try {
@@ -592,7 +619,8 @@ export default function Dashboard() {
               onMarkPaid={handleMarkPaid}
               onEdit={handleOpenEditModal}
               onDelete={handleDeleteInvoice}
-              onOpenChaseModal={(inv) => setChaseInvoice(inv)}
+              onPauseChase={handlePauseChase}
+              onRequestResumeChase={setResumeInvoice}
               onOpenAddModal={handleOpenAddModal}
               selectedCurrency={selectedCurrency}
               onToast={addToast}
@@ -649,6 +677,15 @@ export default function Dashboard() {
         onClose={() => setChaseInvoice(null)}
         onSendChase={handleSendChase}
         profile={userProfile}
+      />
+
+      <ResumeChaseModal
+        isOpen={Boolean(resumeInvoice)}
+        clientName={resumeInvoice?.client.name || ''}
+        email={resumeInvoice?.client.email || ''}
+        nextCadenceStep={getNextScheduledCadenceStep(resumeInvoice?.chase_schedule)}
+        onClose={() => setResumeInvoice(null)}
+        onConfirm={handleResumeChase}
       />
 
       <ProfileModal

@@ -3,11 +3,12 @@ import {
   Search,
   CheckCircle2,
   Trash2,
-  Send,
   Copy,
   Check,
   AlertTriangle,
   Clock,
+  Pause,
+  Play,
   RotateCcw,
   Filter,
   Pencil,
@@ -20,7 +21,8 @@ interface InvoiceTableProps {
   onMarkPaid: (id: string, newStatus: InvoiceStatus) => Promise<void>;
   onEdit: (invoice: InvoiceWithClient) => void;
   onDelete: (id: string) => Promise<void>;
-  onOpenChaseModal: (invoice: InvoiceWithClient) => void;
+  onPauseChase: (invoice: InvoiceWithClient) => Promise<void>;
+  onRequestResumeChase: (invoice: InvoiceWithClient) => void;
   onOpenAddModal: () => void;
   selectedCurrency: 'ALL' | CurrencyCode;
   onToast?: (type: 'success' | 'error' | 'info', title: string, message?: string) => void;
@@ -32,7 +34,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   onMarkPaid,
   onEdit,
   onDelete,
-  onOpenChaseModal,
+  onPauseChase,
+  onRequestResumeChase,
   onOpenAddModal,
   selectedCurrency,
   onToast,
@@ -54,6 +57,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
       if (statusFilter === 'escalated' && inv.status !== 'escalated') return false;
       if (statusFilter === 'pending' && inv.status !== 'pending') return false;
       if (statusFilter === 'paid' && inv.status !== 'paid') return false;
+      if (statusFilter === 'paused' && inv.status !== 'paused') return false;
     }
 
     // Search query filter
@@ -208,6 +212,17 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           >
             Paid ({invoices.filter((i) => i.status === 'paid').length})
           </button>
+          <button
+            type="button"
+            onClick={() => setStatusFilter('paused')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+              statusFilter === 'paused'
+                ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Paused ({invoices.filter((i) => i.status === 'paused').length})
+          </button>
         </div>
       </div>
 
@@ -293,6 +308,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 const isEscalated = inv.status === 'escalated';
                 const isPaid = inv.status === 'paid';
                 const isPending = inv.status === 'pending';
+                const isPaused = inv.status === 'paused';
                 const isCopied = copiedLinkMap[inv.id];
 
                 // Client initials for clean icon
@@ -444,6 +460,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                           </span>
                         )}
 
+                        {isPaused && (
+                          <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-700/50 dark:text-slate-200 dark:border-slate-600">
+                            <Pause className="w-3.5 h-3.5 shrink-0" />
+                            <span>Paused</span>
+                          </span>
+                        )}
+
                         {inv.chase_count > 0 && !isPaid && (
                           <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap pl-1">
                             {inv.chase_count} {inv.chase_count === 1 ? 'chase' : 'chases'} sent
@@ -470,19 +493,30 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                           <span>{isCopied ? 'Copied!' : 'Copy Link'}</span>
                         </button>
 
-                        {/* Chase / Reminder Trigger Button ('Chase') */}
-                        {!isPaid && (
+                        {/* Pause or resume the automated chase sequence */}
+                        {!isPaid && !isPaused && (
                           <button
                             type="button"
-                            onClick={() => onOpenChaseModal(inv)}
+                            onClick={() => void onPauseChase(inv)}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
-                            title="Preview and dispatch automated chase reminder via Email or WhatsApp"
+                            title="Pause automated invoice chasing"
                           >
-                            <Send className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-electric transition-colors shrink-0" />
-                            <span>Chase</span>
+                            <Pause className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+                            <span>Pause Chase</span>
                           </button>
                         )}
 
+                        {!isPaid && isPaused && (
+                          <button
+                            type="button"
+                            onClick={() => onRequestResumeChase(inv)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-white bg-electric hover:bg-[#F4511E] rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
+                            title="Preview and resume the invoice chasing sequence"
+                          >
+                            <Play className="w-3.5 h-3.5 shrink-0" />
+                            <span>Resume Chase</span>
+                          </button>
+                        )}
 
                         {/* Edit Button ('Edit') */}
                         <button

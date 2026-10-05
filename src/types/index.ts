@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'pending' | 'escalated' | 'paid';
+export type InvoiceStatus = 'pending' | 'escalated' | 'paid' | 'paused';
 export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'INR';
 export type ThemeMode = 'dark' | 'light';
 export type PlanTier = 'free' | 'pro' | 'agency';
@@ -61,6 +61,7 @@ export interface Invoice {
   chase_count: number;
   last_chased_at?: string;
   chase_schedule?: 'gentle' | 'standard' | 'assertive';
+  resumed_at?: string;
   notes?: string;
   created_at: string;
 }

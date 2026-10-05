@@ -7,7 +7,8 @@ import {
   Copy, 
   Check, 
   ExternalLink, 
-  Send, 
+  Pause,
+  Play,
   Sparkles,
   ArrowRight,
   TrendingDown,
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Currency, Invoice } from '../types';
 import { INITIAL_INVOICES } from '../data/mockInvoices';
-import { SampleEmailWhatsAppModal } from './SampleEmailWhatsAppModal';
+import { getNextScheduledCadenceStep, ResumeChaseModal } from '../../../components/ResumeChaseModal';
 
 interface InteractiveDashboardPreviewProps {
   onGoToDashboard: () => void;
@@ -25,10 +26,10 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
   onGoToDashboard,
 }) => {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | 'All'>('All');
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'critical' | 'paid'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'critical' | 'paid' | 'paused'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [resumeInvoice, setResumeInvoice] = useState<Invoice | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
 
   // Filter invoices based on currency, status, search
@@ -39,6 +40,7 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
     if (activeTab === 'pending' && inv.status !== 'Pending') return false;
     if (activeTab === 'critical' && inv.status !== 'Critical') return false;
     if (activeTab === 'paid' && inv.status !== 'Paid') return false;
+    if (activeTab === 'paused' && inv.status !== 'Paused') return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -74,6 +76,20 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
         return inv;
       })
     );
+  };
+
+  const handlePauseChase = (id: string) => {
+    setInvoices((prev) =>
+      prev.map((inv) => inv.id === id && inv.status !== 'Paid' ? { ...inv, status: 'Paused' } : inv)
+    );
+  };
+
+  const handleResumeChase = async () => {
+    if (!resumeInvoice) return;
+    setInvoices((prev) =>
+      prev.map((inv) => inv.id === resumeInvoice.id ? { ...inv, status: 'Pending' } : inv)
+    );
+    setResumeInvoice(null);
   };
 
   return (
@@ -163,7 +179,9 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
 
             <div className="my-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-slate-900 tracking-tight">1</span>
+                <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {invoices.filter((invoice) => invoice.status === 'Pending').length}
+                </span>
                 <span className="text-xs font-semibold text-slate-500">invoice awaiting payment</span>
               </div>
             </div>
@@ -187,7 +205,9 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
 
             <div className="my-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-rose-600 tracking-tight">2</span>
+                <span className="text-3xl font-extrabold text-rose-600 tracking-tight">
+                  {invoices.filter((invoice) => invoice.status === 'Critical').length}
+                </span>
                 <span className="text-xs font-semibold text-rose-600">severe delinquent accounts</span>
               </div>
             </div>
@@ -246,6 +266,7 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
                 { id: 'pending', label: `Pending (${invoices.filter(i => i.status === 'Pending').length})` },
                 { id: 'critical', label: `Critical (30+ Days) (${invoices.filter(i => i.status === 'Critical').length})` },
                 { id: 'paid', label: `Paid (${invoices.filter(i => i.status === 'Paid').length})` },
+                { id: 'paused', label: `Paused (${invoices.filter(i => i.status === 'Paused').length})` },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -280,6 +301,7 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
                   const isPaid = inv.status === 'Paid';
                   const isCritical = inv.status === 'Critical';
                   const isPending = inv.status === 'Pending';
+                  const isPaused = inv.status === 'Paused';
 
                   return (
                     <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
@@ -354,6 +376,11 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Critical (30+ Days)
                           </span>
                         )}
+                        {isPaused && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <Pause className="w-3.5 h-3.5" /> Paused
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
@@ -378,15 +405,25 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
                             )}
                           </button>
 
-                          {/* Preview Escalation Notice */}
-                          <button
-                            onClick={() => setPreviewInvoice(inv)}
-                            title="Preview automated WhatsApp / Email chase notice"
-                            className="border border-slate-200 hover:bg-slate-100 text-slate-700 px-2 py-1 rounded-lg font-medium text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <Send className="w-3 h-3 text-[#FF5722]" />
-                            <span className="hidden sm:inline">Preview Chase</span>
-                          </button>
+                          {!isPaid && !isPaused && (
+                            <button
+                              onClick={() => handlePauseChase(inv.id)}
+                              title="Pause automated invoice chasing"
+                              className="border border-slate-200 hover:bg-slate-100 text-slate-700 px-2 py-1 rounded-lg font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Pause className="w-3 h-3" />
+                              <span className="hidden sm:inline">Pause Chase</span>
+                            </button>
+                          )}
+                          {!isPaid && isPaused && (
+                            <button
+                              onClick={() => setResumeInvoice(inv)}
+                              className="bg-[#FF5722] hover:bg-[#F4511E] text-white px-2 py-1 rounded-lg font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Play className="w-3 h-3" />
+                              <span className="hidden sm:inline">Resume Chase</span>
+                            </button>
+                          )}
 
                           {/* Toggle Status */}
                           <button
@@ -420,11 +457,13 @@ export const InteractiveDashboardPreview: React.FC<InteractiveDashboardPreviewPr
         </div>
       </div>
 
-      {/* Modal for Previewing WhatsApp / Email Chase Message */}
-      <SampleEmailWhatsAppModal
-        isOpen={!!previewInvoice}
-        onClose={() => setPreviewInvoice(null)}
-        invoice={previewInvoice || undefined}
+      <ResumeChaseModal
+        isOpen={Boolean(resumeInvoice)}
+        clientName={resumeInvoice?.clientName || ''}
+        email={resumeInvoice?.email || ''}
+        nextCadenceStep={getNextScheduledCadenceStep(resumeInvoice?.chaseSchedule)}
+        onClose={() => setResumeInvoice(null)}
+        onConfirm={handleResumeChase}
       />
     </div>
   );

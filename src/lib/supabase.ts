@@ -468,7 +468,9 @@ class SupabaseService {
                 created_at: inv.created_at,
               };
               const daysOverdue = calculateDaysOverdue(inv.due_date);
-              const status = inv.status === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : inv.status || 'pending');
+              const status = inv.status === 'paid' || inv.status === 'paused'
+                ? inv.status
+                : (daysOverdue >= 30 ? 'escalated' : inv.status || 'pending');
 
               return {
                 id: inv.id,
@@ -483,6 +485,7 @@ class SupabaseService {
                 chase_count: Number(inv.chase_count || 0),
                 last_chased_at: inv.last_chased_at,
                 chase_schedule: inv.chase_schedule || 'standard',
+                resumed_at: inv.resumed_at,
                 notes: inv.notes,
                 created_at: inv.created_at,
                 client,
@@ -534,7 +537,9 @@ class SupabaseService {
               created_at: inv.created_at,
             };
             const daysOverdue = calculateDaysOverdue(inv.due_date);
-            const status = inv.status === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : inv.status || 'pending');
+            const status = inv.status === 'paid' || inv.status === 'paused'
+              ? inv.status
+              : (daysOverdue >= 30 ? 'escalated' : inv.status || 'pending');
 
             return {
               id: inv.id,
@@ -549,6 +554,7 @@ class SupabaseService {
               chase_count: Number(inv.chase_count || 0),
               last_chased_at: inv.last_chased_at,
               chase_schedule: inv.chase_schedule || 'standard',
+              resumed_at: inv.resumed_at,
               notes: inv.notes,
               created_at: inv.created_at,
               client,
@@ -627,7 +633,9 @@ class SupabaseService {
         created_at: row.created_at,
       };
       const daysOverdue = calculateDaysOverdue(row.due_date);
-      const status = row.status === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : row.status || 'pending');
+      const status = row.status === 'paid' || row.status === 'paused'
+        ? row.status
+        : (daysOverdue >= 30 ? 'escalated' : row.status || 'pending');
 
       return {
         id: row.id,
@@ -642,6 +650,7 @@ class SupabaseService {
         chase_count: Number(row.chase_count || 0),
         last_chased_at: row.last_chased_at,
         chase_schedule: row.chase_schedule || 'standard',
+        resumed_at: row.resumed_at,
         notes: row.notes,
         created_at: row.created_at,
         client: clientData,
@@ -680,7 +689,9 @@ class SupabaseService {
           created_at: inv.created_at,
         };
         const daysOverdue = calculateDaysOverdue(inv.due_date);
-        const resolvedStatus = inv.status === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : inv.status);
+        const resolvedStatus = inv.status === 'paid' || inv.status === 'paused'
+          ? inv.status
+          : (daysOverdue >= 30 ? 'escalated' : inv.status);
 
         return {
           ...inv,
@@ -878,7 +889,9 @@ class SupabaseService {
         const clientId = currentInv?.client_id;
         const currentStatus = currentInv?.status || 'pending';
         const updatedStatus: InvoiceStatus =
-          currentStatus === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : 'pending');
+          currentStatus === 'paid' || currentStatus === 'paused'
+            ? currentStatus
+            : (daysOverdue >= 30 ? 'escalated' : 'pending');
 
         let clientRecord: Client;
 
@@ -952,6 +965,7 @@ class SupabaseService {
           chase_count: updatedInv?.chase_count ?? (currentInv?.chase_count || 0),
           last_chased_at: updatedInv?.last_chased_at,
           chase_schedule: updatedInv?.chase_schedule || input.chaseSchedule || 'standard',
+          resumed_at: updatedInv?.resumed_at,
           notes: updatedInv?.notes ?? input.notes,
           created_at: updatedInv?.created_at || currentInv?.created_at || new Date().toISOString(),
           client: clientRecord,
@@ -989,7 +1003,9 @@ class SupabaseService {
     const daysOverdue = calculateDaysOverdue(input.dueDate);
     const currentStatus = existingInv?.status || 'pending';
     const resolvedStatus: InvoiceStatus =
-      currentStatus === 'paid' ? 'paid' : (daysOverdue >= 30 ? 'escalated' : 'pending');
+      currentStatus === 'paid' || currentStatus === 'paused'
+        ? currentStatus
+        : (daysOverdue >= 30 ? 'escalated' : 'pending');
 
     let client = clients.find((c) => c.id === existingInv?.client_id);
     if (client) {
@@ -1048,30 +1064,54 @@ class SupabaseService {
 
   // Update status (e.g. mark paid or reopen)
   public async updateInvoiceStatus(id: string, status: InvoiceStatus): Promise<void> {
-    if (this.client) {
-      try {
-        const { error } = await this.client
-          .from('invoices')
-          .update({ status })
-          .eq('id', id);
+    const isPreviewInvoice = id.startsWith('demo-inv-');
+    if (this.client && !isPreviewInvoice) {
+      const { error } = await this.client
+        .from('invoices')
+        .update({ status })
+        .eq('id', id);
 
-        if (error) throw error;
-      } catch (err) {
-        console.warn('Supabase status update failed, saving locally:', err);
-      }
+      if (error) throw error;
     }
 
     // Always update local store to mirror state
-    try {
-      const rawInvoices = localStorage.getItem(LOCAL_INVOICES_KEY);
-      if (rawInvoices) {
-        const invoices: Invoice[] = JSON.parse(rawInvoices);
-        const updated = invoices.map((inv) => (inv.id === id ? { ...inv, status } : inv));
-        localStorage.setItem(LOCAL_INVOICES_KEY, JSON.stringify(updated));
-      }
-    } catch {}
+    const rawInvoices = localStorage.getItem(LOCAL_INVOICES_KEY);
+    if (rawInvoices) {
+      const invoices: Invoice[] = JSON.parse(rawInvoices);
+      const updated = invoices.map((inv) => (inv.id === id ? { ...inv, status } : inv));
+      localStorage.setItem(LOCAL_INVOICES_KEY, JSON.stringify(updated));
+    }
 
     localEventTarget.dispatchEvent(new Event(LOCAL_CHANGE_EVENT));
+  }
+
+  public async resumeInvoiceChasing(id: string): Promise<string> {
+    let resumedAt = new Date().toISOString();
+    const isPreviewInvoice = id.startsWith('demo-inv-');
+    if (this.client && !isPreviewInvoice) {
+      const { data, error } = await this.client
+        .from('invoices')
+        .update({ status: 'pending' })
+        .eq('id', id)
+        .eq('status', 'paused')
+        .select('resumed_at')
+        .single();
+
+      if (error) throw error;
+      resumedAt = data.resumed_at || resumedAt;
+    }
+
+    const rawInvoices = localStorage.getItem(LOCAL_INVOICES_KEY);
+    if (rawInvoices) {
+      const invoices: Invoice[] = JSON.parse(rawInvoices);
+      const updated = invoices.map((inv) =>
+        inv.id === id ? { ...inv, status: 'pending' as const, resumed_at: resumedAt } : inv
+      );
+      localStorage.setItem(LOCAL_INVOICES_KEY, JSON.stringify(updated));
+    }
+
+    localEventTarget.dispatchEvent(new Event(LOCAL_CHANGE_EVENT));
+    return resumedAt;
   }
 
   // Delete an invoice
@@ -1366,14 +1406,38 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   amount NUMERIC(12, 2) NOT NULL,
   currency TEXT NOT NULL DEFAULT 'USD',
   due_date DATE NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'escalated', 'paid')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'escalated', 'paid', 'paused')),
   payment_link TEXT,
   chase_count INTEGER NOT NULL DEFAULT 0,
   last_chased_at TIMESTAMPTZ,
   chase_schedule TEXT DEFAULT 'standard',
+  resumed_at TIMESTAMPTZ,
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS resumed_at TIMESTAMPTZ;
+ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
+ALTER TABLE public.invoices ADD CONSTRAINT invoices_status_check
+  CHECK (status IN ('pending', 'escalated', 'paid', 'paused'));
+
+CREATE OR REPLACE FUNCTION public.set_invoice_resumed_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.status = 'paused' AND NEW.status = 'pending' THEN
+    NEW.resumed_at := CURRENT_TIMESTAMP;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS invoices_set_resumed_at ON public.invoices;
+CREATE TRIGGER invoices_set_resumed_at
+  BEFORE UPDATE ON public.invoices
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_invoice_resumed_at();
 
 -- 4. Create Indexes for High Performance Queries
 CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON public.invoices(user_id);

@@ -1,6 +1,6 @@
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'INR';
 
-export type InvoiceStatus = 'Paid' | 'Pending' | 'Critical';
+export type InvoiceStatus = 'Paid' | 'Pending' | 'Critical' | 'Paused';
 
 export type ChaseSchedule = 'Gentle' | 'Standard' | 'Assertive';
 

@@ -29,23 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Clean Brand Wordmark */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-electric flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-              {/* Fox silhouette minimalist geometric icon */}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4 text-white"
-              >
-                <polygon points="12 2 19 8 19 19 5 19 5 8 12 2" fill="currentColor" fillOpacity="0.25" />
-                <path d="M5 8l7 4 7-4" />
-                <path d="M12 12v7" />
-                <path d="M9 5l3 3 3-3" />
-              </svg>
-            </div>
+            <img src="/duefox-logo.svg" alt="DueFox" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap">
                 dueFox<span className="text-electric font-semibold">.co</span>

@@ -117,22 +117,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       {/* Top Bar inside Auth */}
       <div className="w-full max-w-7xl mx-auto flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-electric flex items-center justify-center text-white font-bold text-sm shadow-sm">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5 text-white"
-            >
-              <polygon points="12 2 19 8 19 19 5 19 5 8 12 2" fill="currentColor" fillOpacity="0.25" />
-              <path d="M5 8l7 4 7-4" />
-              <path d="M12 12v7" />
-              <path d="M9 5l3 3 3-3" />
-            </svg>
-          </div>
+          <img src="/duefox-logo.svg" alt="DueFox" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
           <div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
               dueFox<span className="text-electric font-semibold">.co</span>

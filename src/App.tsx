@@ -417,22 +417,7 @@ function LegacyDashboard() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center p-6 text-white">
-        <div className="w-12 h-12 rounded-2xl bg-electric flex items-center justify-center shadow-lg animate-pulse mb-4">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-6 h-6 text-white"
-          >
-            <polygon points="12 2 19 8 19 19 5 19 5 8 12 2" fill="currentColor" fillOpacity="0.25" />
-            <path d="M5 8l7 4 7-4" />
-            <path d="M12 12v7" />
-            <path d="M9 5l3 3 3-3" />
-          </svg>
-        </div>
+        <img src="/duefox-logo.svg" alt="DueFox" className="mb-4 h-12 w-12 animate-pulse rounded-2xl object-contain shadow-lg" />
         <p className="text-sm font-semibold tracking-wide text-slate-300">
           Loading dueFox engine...
         </p>
@@ -630,6 +615,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pay/:id" element={<PaymentPage />} />
       </Routes>

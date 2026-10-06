@@ -199,14 +199,32 @@ export default function Dashboard() {
 
   // Fetch organization and sender profile whenever authenticated user changes
   useEffect(() => {
-    if (currentUser) {
-      supabaseService.getProfile(currentUser.id).then((profile) => {
-        setUserProfile(profile);
-      });
-    } else {
+    if (!currentUser) {
       setUserProfile(null);
+      return;
     }
-  }, [currentUser]);
+
+    let mounted = true;
+    supabaseService
+      .getProfile(currentUser.id)
+      .then((profile) => {
+        if (mounted) setUserProfile(profile);
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load profile settings:', err);
+        if (mounted) {
+          addToast(
+            'error',
+            'Failed to load settings',
+            err instanceof Error ? err.message : 'Please verify database connectivity'
+          );
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser, addToast]);
 
   // Handler: Save profile settings
   const handleSaveProfile = async (updated: UserProfile) => {

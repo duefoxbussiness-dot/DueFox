@@ -1233,50 +1233,48 @@ class SupabaseService {
   // User Profile & Company Settings Management
   public async getProfile(userId: string): Promise<UserProfile> {
     const cacheKey = `duefox_profile_${userId}`;
-    // Check local storage cache first
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch {}
+    if (this.client && userId !== DEMO_USER.id) {
+      const { data, error } = await this.client
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    // Check Supabase database
-    if (this.client) {
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        const profile: UserProfile = {
+          id: data.id,
+          full_name: data.representative_name || '',
+          company_name: data.company_name || '',
+          business_email: data.business_email || '',
+          phone: data.phone || '',
+          default_currency: (data.currency as CurrencyCode) || 'USD',
+          company_address: data.business_address || '',
+          tax_id: data.tax_id || '',
+          payment_gateway_url: data.payment_link || '',
+          upi_id: data.upi_id || '',
+          bank_holder_name: data.bank_account_holder || '',
+          bank_name: data.bank_name || '',
+          bank_account_number: data.bank_account_number || '',
+          bank_swift_bic: data.bank_swift_code || '',
+          bank_routing_wise: data.bank_routing_code || '',
+          plan: (data.plan as PlanTier) || 'free',
+          plan_status: data.plan_status || 'Active',
+          updated_at: data.updated_at,
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(profile));
+        return profile;
+      }
+    } else {
       try {
-        const { data, error } = await this.client
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (!error && data) {
-          const profile: UserProfile = {
-            id: data.id,
-            full_name: data.full_name || '',
-            company_name: data.company_name || '',
-            business_email: data.business_email || '',
-            phone: data.phone || '',
-            default_currency: (data.default_currency as CurrencyCode) || 'USD',
-            company_address: data.company_address || '',
-            tax_id: data.tax_id || '',
-            payment_gateway_url: data.payment_gateway_url || '',
-            upi_id: data.upi_id || '',
-            bank_holder_name: data.bank_holder_name || '',
-            bank_name: data.bank_name || '',
-            bank_account_number: data.bank_account_number || '',
-            bank_swift_bic: data.bank_swift_bic || '',
-            bank_routing_wise: data.bank_routing_wise || '',
-            plan: (data.plan as PlanTier) || 'free',
-            plan_status: data.plan_status || 'Active',
-            updated_at: data.updated_at,
-          };
-          localStorage.setItem(cacheKey, JSON.stringify(profile));
-          return profile;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          return JSON.parse(cached);
         }
-      } catch (err) {
-        console.info('Supabase profiles table fetch note:', err);
-      }
+      } catch {}
     }
 
     // Default seed profile for new user
@@ -1312,45 +1310,34 @@ class SupabaseService {
       updated_at: new Date().toISOString(),
     };
 
-    localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
+    if (this.client && profile.id !== DEMO_USER.id) {
+      const { error } = await this.client.from('profiles').upsert({
+        id: profile.id,
+        company_name: profile.company_name,
+        representative_name: profile.full_name,
+        business_email: profile.business_email,
+        phone: profile.phone,
+        currency: profile.default_currency,
+        business_address: profile.company_address || null,
+        tax_id: profile.tax_id || null,
+        payment_link: profile.payment_gateway_url || null,
+        upi_id: profile.upi_id || null,
+        bank_account_holder: profile.bank_holder_name || null,
+        bank_name: profile.bank_name || null,
+        bank_account_number: profile.bank_account_number || null,
+        bank_swift_code: profile.bank_swift_bic || null,
+        bank_routing_code: profile.bank_routing_wise || null,
+        plan: profile.plan || 'free',
+        plan_status: profile.plan_status || 'Active',
+        updated_at: updatedProfile.updated_at,
+      });
 
-    if (this.client) {
-      try {
-        // Also update Supabase auth metadata
-        await this.client.auth.updateUser({
-          data: {
-            full_name: profile.full_name,
-            company_name: profile.company_name,
-            default_currency: profile.default_currency,
-          },
-        });
-
-        // Upsert into public.profiles table
-        await this.client.from('profiles').upsert({
-          id: profile.id,
-          full_name: profile.full_name,
-          company_name: profile.company_name,
-          business_email: profile.business_email,
-          phone: profile.phone,
-          default_currency: profile.default_currency,
-          company_address: profile.company_address || null,
-          tax_id: profile.tax_id || null,
-          payment_gateway_url: profile.payment_gateway_url || null,
-          upi_id: profile.upi_id || null,
-          bank_holder_name: profile.bank_holder_name || null,
-          bank_name: profile.bank_name || null,
-          bank_account_number: profile.bank_account_number || null,
-          bank_swift_bic: profile.bank_swift_bic || null,
-          bank_routing_wise: profile.bank_routing_wise || null,
-          plan: profile.plan || 'free',
-          plan_status: profile.plan_status || 'Active',
-          updated_at: updatedProfile.updated_at,
-        });
-      } catch (err) {
-        console.warn('Supabase profile sync note:', err);
+      if (error) {
+        throw error;
       }
     }
 
+    localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
     localEventTarget.dispatchEvent(new Event(LOCAL_CHANGE_EVENT));
     return updatedProfile;
   }
@@ -1365,20 +1352,20 @@ class SupabaseService {
 -- 1. Create Profiles Table (User & Company Settings)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  full_name TEXT,
+  representative_name TEXT,
   company_name TEXT,
   business_email TEXT,
   phone TEXT,
-  default_currency TEXT DEFAULT 'USD',
-  company_address TEXT,
+  currency TEXT DEFAULT 'USD',
+  business_address TEXT,
   tax_id TEXT,
-  payment_gateway_url TEXT,
+  payment_link TEXT,
   upi_id TEXT,
-  bank_holder_name TEXT,
+  bank_account_holder TEXT,
   bank_name TEXT,
   bank_account_number TEXT,
-  bank_swift_bic TEXT,
-  bank_routing_wise TEXT,
+  bank_swift_code TEXT,
+  bank_routing_code TEXT,
   plan TEXT DEFAULT 'free',
   plan_status TEXT DEFAULT 'Active',
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())

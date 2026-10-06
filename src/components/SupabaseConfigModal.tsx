@@ -329,20 +329,20 @@ CREATE TRIGGER invoices_set_resumed_at
 -- 3. Create Profiles Table (for Company & Payment Settings)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id TEXT PRIMARY KEY,
-  full_name TEXT NOT NULL,
+  representative_name TEXT NOT NULL,
   company_name TEXT NOT NULL,
   business_email TEXT NOT NULL,
   phone TEXT,
-  default_currency TEXT DEFAULT 'USD',
-  company_address TEXT,
+  currency TEXT DEFAULT 'USD',
+  business_address TEXT,
   tax_id TEXT,
-  payment_gateway_url TEXT,
+  payment_link TEXT,
   upi_id TEXT,
-  bank_holder_name TEXT,
+  bank_account_holder TEXT,
   bank_name TEXT,
   bank_account_number TEXT,
-  bank_swift_bic TEXT,
-  bank_routing_wise TEXT,
+  bank_swift_code TEXT,
+  bank_routing_code TEXT,
   plan TEXT DEFAULT 'free',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

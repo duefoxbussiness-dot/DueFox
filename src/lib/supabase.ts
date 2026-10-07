@@ -250,11 +250,37 @@ class SupabaseService {
       created_at: new Date().toISOString(),
     };
 
+    localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(authUser));
+    localEventTarget.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+
     return {
       user: authUser,
-      requiresConfirmation: true,
-      message: 'Confirmation email sent! Please check your inbox and click the verification link before logging in.',
+      requiresConfirmation: false,
+      message: 'Your 7-day free trial is ready.',
     };
+  }
+
+  public async signInWithGoogle(): Promise<{ error?: string }> {
+    if (!this.client) {
+      return { error: 'Google sign-in requires a connected Supabase project with Google OAuth enabled.' };
+    }
+
+    try {
+      const { error } = await this.client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+
+      if (error) {
+        console.error('[Supabase] Google sign-in failed:', error);
+        return { error: error.message };
+      }
+
+      return {};
+    } catch (err: unknown) {
+      console.error('[Supabase] Google sign-in request threw an error:', err);
+      return { error: err instanceof Error ? err.message : 'Unable to start Google sign-in.' };
+    }
   }
 
   // Authentication: Sign Out
@@ -1309,8 +1335,10 @@ class SupabaseService {
           bank_account_number: data.bank_account_number || '',
           bank_swift_bic: data.bank_swift_code || '',
           bank_routing_wise: data.bank_routing_code || '',
-          plan: (data.plan as PlanTier) || 'free',
+          plan: (data.plan as PlanTier) || 'pro',
           plan_status: data.plan_status || 'Active',
+          subscription_status: data.subscription_status || 'active',
+          trial_ends_at: data.trial_ends_at || null,
           updated_at: data.updated_at,
         };
         localStorage.setItem(cacheKey, JSON.stringify(profile));
@@ -1320,7 +1348,12 @@ class SupabaseService {
       try {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
-          return JSON.parse(cached);
+          const profile = JSON.parse(cached) as UserProfile;
+          if (!profile.subscription_status) {
+            profile.subscription_status = 'trialing';
+            profile.trial_ends_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          }
+          return profile;
         }
       } catch {}
     }
@@ -1342,8 +1375,10 @@ class SupabaseService {
       bank_account_number: '',
       bank_swift_bic: '',
       bank_routing_wise: '',
-      plan: 'free',
+      plan: 'pro',
       plan_status: 'Active',
+      subscription_status: 'trialing',
+      trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     };
 
@@ -1375,8 +1410,10 @@ class SupabaseService {
         bank_account_number: profile.bank_account_number || null,
         bank_swift_code: profile.bank_swift_bic || null,
         bank_routing_code: profile.bank_routing_wise || null,
-        plan: profile.plan || 'free',
+        plan: profile.plan || 'pro',
         plan_status: profile.plan_status || 'Active',
+        subscription_status: profile.subscription_status || 'active',
+        trial_ends_at: profile.trial_ends_at || null,
         updated_at: updatedProfile.updated_at,
       });
 
@@ -1414,12 +1451,67 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   bank_account_number TEXT,
   bank_swift_code TEXT,
   bank_routing_code TEXT,
-  plan TEXT DEFAULT 'free',
+  plan TEXT DEFAULT 'pro',
   plan_status TEXT DEFAULT 'Active',
+  subscription_status TEXT DEFAULT 'trialing',
+  trial_ends_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS upi_id TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT 'Active';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
+UPDATE public.profiles
+SET subscription_status = CASE
+  WHEN LOWER(COALESCE(plan_status, '')) = 'trialing' THEN 'trialing'
+  ELSE 'active'
+END
+WHERE subscription_status IS NULL;
+ALTER TABLE public.profiles ALTER COLUMN subscription_status SET DEFAULT 'trialing';
+
+CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  profile_id_type TEXT;
+BEGIN
+  SELECT format_type(attribute.atttypid, attribute.atttypmod)
+  INTO STRICT profile_id_type
+  FROM pg_attribute AS attribute
+  WHERE attribute.attrelid = 'public.profiles'::regclass
+    AND attribute.attname = 'id'
+    AND NOT attribute.attisdropped;
+
+  EXECUTE format(
+    'INSERT INTO public.profiles (
+      id, representative_name, company_name, business_email, plan, plan_status,
+      subscription_status, trial_ends_at, updated_at
+    )
+    VALUES (
+      $1::%s, $2, $3, $4, ''pro'', ''Active'', ''trialing'',
+      CURRENT_TIMESTAMP + INTERVAL ''7 days'', CURRENT_TIMESTAMP
+    )
+    ON CONFLICT (id) DO NOTHING',
+    profile_id_type
+  )
+  USING
+    NEW.id::text,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email, ''),
+    COALESCE(NEW.raw_user_meta_data->>'company_name', NEW.raw_user_meta_data->>'full_name', NEW.email, ''),
+    COALESCE(NEW.email, '');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created_profile ON auth.users;
+CREATE TRIGGER on_auth_user_created_profile
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_auth_user();
 
 -- 2. Create Clients Table
 CREATE TABLE IF NOT EXISTS public.clients (

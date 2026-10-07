@@ -17,6 +17,25 @@ test('renders the demo dashboard and invoice count', async ({ page }) => {
   await expect(page.getByRole('row').filter({ hasText: 'Jordan Lee' })).toBeVisible();
 });
 
+test('starts a signup trial and shows a dismissible dashboard trial banner', async ({ page }) => {
+  await page.goto('/dashboard');
+  await page.getByRole('button', { name: 'Create Account' }).click();
+
+  await expect(page.getByText('Start 7-Day Unlimited Free Trial — No Credit Card Required')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+
+  await page.getByPlaceholder('e.g. Alex Morgan or Apex Systems').fill('Trial User');
+  await page.getByPlaceholder('demo@gmail.com').fill('trial-user@example.com');
+  await page.locator('input[type="password"]').fill('trial-password');
+  await page.getByRole('button', { name: 'Start 7-Day Free Trial' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Invoice Accounts & Chase Queue' })).toBeVisible();
+  const trialBanner = page.getByRole('status').filter({ hasText: 'Your Pro Trial expires in' });
+  await expect(trialBanner).toContainText(/Your Pro Trial expires in [1-7] days\. Recovering invoices is active!/);
+  await trialBanner.getByRole('button', { name: 'Dismiss trial banner' }).click();
+  await expect(trialBanner).toHaveCount(0);
+});
+
 test('keeps the initial page background aligned with the saved theme across reloads and viewports', async ({ page }) => {
   await page.addInitScript(() => {
     if (sessionStorage.getItem('e2e_theme_initialized')) return;

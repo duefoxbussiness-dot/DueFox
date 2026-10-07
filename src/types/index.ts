@@ -33,6 +33,8 @@ export interface UserProfile {
   // Tab 3: Subscription & Plan Status
   plan?: PlanTier;
   plan_status?: string;
+  subscription_status?: string;
+  trial_ends_at?: string | null;
 
   updated_at?: string;
 }

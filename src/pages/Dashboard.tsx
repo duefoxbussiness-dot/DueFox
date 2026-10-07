@@ -20,6 +20,7 @@ import { getNextScheduledCadenceStep, ResumeChaseModal } from '../components/Res
 import { ProfileModal } from '../components/ProfileModal';
 import { SupabaseConfigModal } from '../components/SupabaseConfigModal';
 import { AuthView } from '../components/AuthView';
+import { TrialBanner } from '../components/TrialBanner';
 import { ToastContainer, ToastMessage } from '../components/Toast';
 
 const demoDueDate = (daysAgo: number) => {
@@ -569,6 +570,12 @@ export default function Dashboard() {
         isDemoMode={currentUser.id === DEMO_USER.id}
         onCreateAccount={() => setCurrentUser(null)}
         onSignOut={handleSignOut}
+      />
+
+      <TrialBanner
+        key={currentUser.id}
+        subscriptionStatus={userProfile?.subscription_status}
+        trialEndsAt={userProfile?.trial_ends_at}
       />
 
       {/* Main Workspace Canvas - Full Desktop Width */}

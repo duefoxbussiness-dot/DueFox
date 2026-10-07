@@ -85,19 +85,30 @@ export const AuthView: React.FC<AuthViewProps> = ({
         const res = await supabaseService.signUp(email, password, fullName);
         if (res.error) {
           setError(res.error);
-        } else {
-          // Display prominent confirmation alert message
+        } else if (res.requiresConfirmation) {
           setSignupConfirmation(true);
-          setSuccessMsg('Confirmation email sent! Please check your inbox and click the verification link before logging in.');
+          setSuccessMsg(res.message || 'Confirmation email sent! Please check your inbox before logging in.');
           setTab('login');
-          if (res.user && !res.requiresConfirmation) {
-            onAuthenticated(res.user);
-            navigate('/dashboard');
-          }
+        } else if (res.user) {
+          onAuthenticated(res.user);
+          navigate('/dashboard');
         }
       }
     } catch (err: any) {
       setError(err?.message || 'Authentication failed. Please verify credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await supabaseService.signInWithGoogle();
+      if (result.error) setError(result.error);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unable to start Google sign-in.');
     } finally {
       setLoading(false);
     }
@@ -148,6 +159,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 ? 'Sign in to access your invoice chasing engine and ledger'
                 : 'Get started recovering overdue accounts with automated workflows'}
             </p>
+            {!isResetPasswordView && tab === 'signup' && (
+              <p className="mt-3 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold leading-relaxed text-[#D84315] dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-300">
+                Start 7-Day Unlimited Free Trial — No Credit Card Required
+              </p>
+            )}
           </div>
 
           {/* Tab Switcher */}
@@ -289,7 +305,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  autoComplete="new-password"
+                  autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-10 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors"
@@ -332,12 +348,29 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>{isResetPasswordView ? 'Send Reset Link' : tab === 'login' ? 'Sign In to Dashboard' : 'Create Free Account'}</span>
+                  <span>{isResetPasswordView ? 'Send Reset Link' : tab === 'login' ? 'Sign In to Dashboard' : 'Start 7-Day Free Trial'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
+
+          {!isResetPasswordView && (
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              <svg aria-hidden="true" viewBox="0 0 48 48" className="h-4 w-4">
+                <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15Z" />
+                <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z" />
+                <path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8l6.8-5.3Z" />
+                <path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 5.8 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12Z" />
+              </svg>
+              Continue with Google
+            </button>
+          )}
 
           {isResetPasswordView && (
             <button
@@ -360,7 +393,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
             </div>
             <div className="relative flex justify-center text-[11px] uppercase tracking-wider font-semibold">
               <span className="bg-white dark:bg-slate-800 px-3 text-slate-400">
-                Or quick test with
+                Or continue with
               </span>
             </div>
           </div>}

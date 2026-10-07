@@ -343,11 +343,67 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   bank_account_number TEXT,
   bank_swift_code TEXT,
   bank_routing_code TEXT,
-  plan TEXT DEFAULT 'free',
+  plan TEXT DEFAULT 'pro',
+  plan_status TEXT DEFAULT 'Active',
+  subscription_status TEXT DEFAULT 'trialing',
+  trial_ends_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS upi_id TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT 'Active';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
+UPDATE public.profiles
+SET subscription_status = CASE
+  WHEN LOWER(COALESCE(plan_status, '')) = 'trialing' THEN 'trialing'
+  ELSE 'active'
+END
+WHERE subscription_status IS NULL;
+ALTER TABLE public.profiles ALTER COLUMN subscription_status SET DEFAULT 'trialing';
+
+CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  profile_id_type TEXT;
+BEGIN
+  SELECT format_type(attribute.atttypid, attribute.atttypmod)
+  INTO STRICT profile_id_type
+  FROM pg_attribute AS attribute
+  WHERE attribute.attrelid = 'public.profiles'::regclass
+    AND attribute.attname = 'id'
+    AND NOT attribute.attisdropped;
+
+  EXECUTE format(
+    'INSERT INTO public.profiles (
+      id, representative_name, company_name, business_email, plan, plan_status,
+      subscription_status, trial_ends_at, updated_at
+    )
+    VALUES (
+      $1::%s, $2, $3, $4, ''pro'', ''Active'', ''trialing'',
+      CURRENT_TIMESTAMP + INTERVAL ''7 days'', CURRENT_TIMESTAMP
+    )
+    ON CONFLICT (id) DO NOTHING',
+    profile_id_type
+  )
+  USING
+    NEW.id::text,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email, ''),
+    COALESCE(NEW.raw_user_meta_data->>'company_name', NEW.raw_user_meta_data->>'full_name', NEW.email, ''),
+    COALESCE(NEW.email, '');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created_profile ON auth.users;
+CREATE TRIGGER on_auth_user_created_profile
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_auth_user();
 
 -- 4. Enable Row Level Security (RLS) with open prototype policies
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;

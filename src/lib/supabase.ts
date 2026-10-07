@@ -573,13 +573,23 @@ class SupabaseService {
   }
 
   public async fetchPublicInvoice(invoiceId: string): Promise<{ invoice: InvoiceWithClient; profile: UserProfile | null } | null> {
-    if (this.client) {
+    const publicClient = this.config.isConnected
+      ? createClient(this.config.url, this.config.anonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+        })
+      : null;
+
+    if (publicClient) {
       try {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invoiceId);
         let row = null;
 
         if (isUuid) {
-          const idResult = await this.client
+          const idResult = await publicClient
             .from('invoices')
             .select('*')
             .eq('id', invoiceId)
@@ -589,7 +599,7 @@ class SupabaseService {
         }
 
         if (!row) {
-          const invoiceNumberResult = await this.client
+          const invoiceNumberResult = await publicClient
             .from('invoices')
             .select('*')
             .eq('invoice_number', invoiceId)
@@ -599,7 +609,7 @@ class SupabaseService {
         }
 
         if (row) {
-          const { data: clientRecord, error: clientError } = await this.client
+          const { data: clientRecord, error: clientError } = await publicClient
             .from('clients')
             .select('*')
             .eq('id', row.client_id)
@@ -607,7 +617,37 @@ class SupabaseService {
           if (clientError) throw clientError;
 
           const invoice = this.mapSupabaseInvoiceRows([{ ...row, clients: clientRecord }])[0];
-          const profile = invoice.user_id ? await this.getProfile(invoice.user_id) : null;
+          let profile: UserProfile | null = null;
+          if (invoice.user_id) {
+            const { data: profileData, error: profileError } = await publicClient
+              .from('profiles')
+              .select('*')
+              .eq('id', invoice.user_id)
+              .maybeSingle();
+            if (profileError) throw profileError;
+            if (profileData) {
+              profile = {
+                id: profileData.id,
+                full_name: profileData.representative_name || '',
+                company_name: profileData.company_name || '',
+                business_email: profileData.business_email || '',
+                phone: profileData.phone || '',
+                default_currency: (profileData.currency as CurrencyCode) || 'USD',
+                company_address: profileData.business_address || '',
+                tax_id: profileData.tax_id || '',
+                payment_gateway_url: profileData.payment_link || '',
+                upi_id: profileData.upi_id || '',
+                bank_holder_name: profileData.bank_account_holder || '',
+                bank_name: profileData.bank_name || '',
+                bank_account_number: profileData.bank_account_number || '',
+                bank_swift_bic: profileData.bank_swift_code || '',
+                bank_routing_wise: profileData.bank_routing_code || '',
+                plan: (profileData.plan as PlanTier) || 'free',
+                plan_status: profileData.plan_status || 'Active',
+                updated_at: profileData.updated_at,
+              };
+            }
+          }
           return { invoice, profile };
         }
       } catch (err) {
@@ -618,7 +658,15 @@ class SupabaseService {
     const invoice = this.getLocalClientsAndInvoices().find((item) => item.id === invoiceId || item.invoice_number === invoiceId);
     if (!invoice) return null;
 
-    const profile = invoice.user_id ? await this.getProfile(invoice.user_id) : null;
+    let profile: UserProfile | null = null;
+    if (invoice.user_id) {
+      try {
+        const cached = localStorage.getItem(`duefox_profile_${invoice.user_id}`);
+        profile = cached ? JSON.parse(cached) as UserProfile : null;
+      } catch {
+        profile = null;
+      }
+    }
     return { invoice, profile };
   }
 

@@ -17,6 +17,30 @@ test('renders the demo dashboard and invoice count', async ({ page }) => {
   await expect(page.getByRole('row').filter({ hasText: 'Jordan Lee' })).toBeVisible();
 });
 
+test('updates shared pricing for annual billing and expands comparisons and FAQs', async ({ page }) => {
+  await page.goto('/');
+
+  const proPlan = page.locator('article').filter({ hasText: 'Pro Chaser' });
+  const agencyPlan = page.locator('article').filter({ hasText: 'Agency' });
+  await expect(proPlan.getByText('$9', { exact: true })).toBeVisible();
+  await expect(agencyPlan.getByText('$49', { exact: true })).toBeVisible();
+  await expect(page.getByText('Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.')).toBeVisible();
+
+  await page.getByRole('button', { name: /Annual.*Save 20%/ }).click();
+  await expect(proPlan.getByText('$7', { exact: true })).toBeVisible();
+  await expect(proPlan.getByText('Billed $84/year')).toBeVisible();
+  await expect(agencyPlan.getByText('$39', { exact: true })).toBeVisible();
+  await expect(agencyPlan.getByText('Billed $468/year')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Compare All Features' }).click();
+  const invoiceLimitRow = page.getByRole('row').filter({ hasText: 'Active invoices' });
+  await expect(invoiceLimitRow.getByText('10')).toBeVisible();
+  await expect(invoiceLimitRow.getByText('Unlimited')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Can I switch plans anytime?' }).click();
+  await expect(page.getByText('Yes, upgrade or downgrade instantly whenever your needs change.')).toBeVisible();
+});
+
 test('opens the add invoice modal with the expected fields', async ({ page }) => {
   await openDemoDashboard(page);
   await page.getByRole('button', { name: 'Add Invoice' }).click();

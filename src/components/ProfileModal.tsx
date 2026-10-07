@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { UserProfile, CurrencyCode, PlanTier } from '../types';
+import { PricingPlans } from './PricingPlans';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -150,7 +151,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div
-        className="relative bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className={`relative bg-white w-full ${activeTab === 'plan' ? 'max-w-7xl' : 'max-w-2xl'} rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
@@ -537,197 +538,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: Subscription & Plan Status */}
-          {activeTab === 'plan' && (
-            <div className="space-y-4 animate-in fade-in duration-150">
-              {/* Current Active Plan Banner */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-orange-50 via-slate-50 to-orange-50/30 border border-orange-200 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-xs">
-                    <Crown className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-900 capitalize">{plan} Plan Active</span>
-                      <span className="flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Active
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      {plan === 'free'
-                        ? 'Standard chasing features for independent contractors.'
-                        : plan === 'pro'
-                        ? 'Unlimited automated invoice recovery and payment gateway routing.'
-                        : 'Full multi-organization automated collections powerhouse.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Plan Options Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                {/* 1. Free Tier */}
-                <div
-                  onClick={() => handleSelectPlan('free')}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                    plan === 'free'
-                      ? 'bg-orange-50/40 border-orange-500 ring-1 ring-orange-500'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase text-slate-500">Basic</span>
-                      {plan === 'free' && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 mb-2">
-                      $0 <span className="text-xs font-normal text-slate-500">/mo</span>
-                    </div>
-                    <ul className="space-y-1.5 text-xs text-slate-600">
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Up to 10 invoices</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Email reminders</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Payment copy link</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectPlan('free');
-                    }}
-                    className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      plan === 'free'
-                        ? 'bg-slate-200 text-slate-800'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {plan === 'free' ? 'Selected' : 'Downgrade to Free'}
-                  </button>
-                </div>
-
-                {/* 2. Pro Plan - Prominently Highlighted */}
-                <div
-                  onClick={() => handleSelectPlan('pro')}
-                  className="p-4 rounded-xl border relative transition-all cursor-pointer flex flex-col justify-between ring-2 ring-[#FF5722] border-[#FF5722] bg-white sm:scale-[1.03] shadow-lg z-10"
-                >
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#FF5722] text-white text-[10px] font-extrabold uppercase tracking-wide rounded-full shadow-md whitespace-nowrap">
-                    ★ RECOMMENDED / MOST POPULAR
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2 pt-1">
-                      <span className="text-xs font-bold uppercase text-[#FF5722]">Pro Chaser</span>
-                      {plan === 'pro' && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 mb-2">
-                      $9 <span className="text-xs font-normal text-slate-500">/mo</span>
-                    </div>
-                    <ul className="space-y-1.5 text-xs text-slate-600">
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Unlimited invoices</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>WhatsApp & Email chasing</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Custom gateway links</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>High-ticket wire details</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectPlan('pro');
-                    }}
-                    className="mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white shadow-xs"
-                  >
-                    {plan === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
-                  </button>
-                </div>
-
-                {/* 3. Agency Plan */}
-                <div
-                  onClick={() => handleSelectPlan('agency')}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                    plan === 'agency'
-                      ? 'bg-purple-50/40 border-purple-500 ring-1 ring-purple-500'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase text-purple-700">Agency / Scale</span>
-                      {plan === 'agency' && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 mb-2">
-                      $49 <span className="text-xs font-normal text-slate-500">/mo</span>
-                    </div>
-                    <ul className="space-y-1.5 text-xs text-slate-600">
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Everything in Pro</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Multi-brand profiles</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Priority escalation queue</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Dedicated account support</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectPlan('agency');
-                    }}
-                    className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      plan === 'agency'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-100 text-purple-700 hover:bg-purple-600 hover:text-white'
-                    }`}
-                  >
-                    {plan === 'agency' ? 'Current Plan' : 'Upgrade to Agency'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'plan' && <PricingPlans compact selectedPlan={plan} onSelectPlan={handleSelectPlan} />}
 
           {/* Footer Actions */}
           <div className="pt-4 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">

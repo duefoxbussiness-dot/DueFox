@@ -28,13 +28,13 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './components/BrandLogo';
 import { InteractiveDashboardPreview } from './components/InteractiveDashboardPreview';
+import { PricingPlans } from '../../components/PricingPlans';
 
 interface LandingPageProps {
   onNavigateToDashboard?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard }) => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [calculatorInvoiceAmount, setCalculatorInvoiceAmount] = useState<number>(24000);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [activeStep, setActiveStep] = useState(0);
@@ -143,13 +143,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  // Monthly plan rates are consistent across the app.
-  const prices = {
-    starter: 0,
-    pro: 9,
-    agency: 49,
   };
 
   // ROI math
@@ -902,252 +895,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
         </motion.div>
       </section>
 
-      {/* 6. Pricing Tiers - 100% MATCHING THE UPLOADED SETTINGS IMAGE */}
       <section id="pricing" className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto mb-14 space-y-4"
-        >
-          <span className="text-xs font-bold tracking-widest text-[#FF5722] uppercase">
-            TRANSPARENT, FLAT PRICING
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Plans That Pay For Themselves on Invoice #1
-          </h2>
-          <p className="text-sm sm:text-base text-[#64748B]">
-            Start free with up to 10 invoices, or scale with unlimited WhatsApp automation.
-          </p>
-
-          {/* Billing Switcher with Slide Animation */}
-          <div className="inline-flex items-center p-1 bg-white rounded-xl border border-slate-200 shadow-2xs mt-4">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer relative ${
-                billingCycle === 'monthly' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {billingCycle === 'monthly' && (
-                <motion.div
-                  layoutId="billing-pill"
-                  className="absolute inset-0 bg-[#FF5722] rounded-lg shadow-xs"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10">Monthly Billing</span>
-            </button>
-            <button
-              onClick={() => setBillingCycle('annual')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer relative flex items-center gap-1.5 ${
-                billingCycle === 'annual' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {billingCycle === 'annual' && (
-                <motion.div
-                  layoutId="billing-pill"
-                  className="absolute inset-0 bg-[#FF5722] rounded-lg shadow-xs"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-1.5">
-                <span>Annual Billing</span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
-                }`}>
-                  {billingCycle === 'annual' ? 'Billed yearly' : 'No commitment'}
-                </span>
-              </span>
-            </button>
-          </div>
-        </motion.div>
-
-        {/* 3 Pricing Cards: Exactly matching the uploaded image */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {/* 1. STARTER PLAN ($0 /mo) */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            whileHover={{ y: -6, transition: { duration: 0.2 } }}
-            className="bg-white rounded-2xl p-7 sm:p-8 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-md transition-all"
-          >
-            <div className="space-y-6">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  BASIC
-                </span>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    $0
-                  </span>
-                  <span className="text-slate-400 font-semibold text-sm">/mo</span>
-                </div>
-                <p className="text-xs text-[#64748B] mt-2">
-                  Free forever for freelancers with up to 10 active monthly invoices.
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100 space-y-3.5 text-xs">
-                <ul className="space-y-3 text-slate-700">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Up to 10 invoices</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Email reminders</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Payment copy link</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="pt-8">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGoToDashboard}
-                className="w-full py-3.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-sm transition-all shadow-2xs cursor-pointer"
-              >
-                Downgrade to Free
-              </motion.button>
-            </div>
-          </motion.div>
-
-          {/* 2. PRO CHASER PLAN ($9 /mo) - HIGHLIGHTED WITH ORANGE BORDER MATCHING SCREENSHOT */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            whileHover={{ y: -8, transition: { duration: 0.2 } }}
-            className="bg-white rounded-2xl p-7 sm:p-8 border-2 border-[#FF5722] shadow-xl flex flex-col justify-between relative transform md:-translate-y-2"
-          >
-            {/* Top Badge matching Screenshot */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#FF5722] text-white text-[10.5px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-xs whitespace-nowrap">
-              ★ RECOMMENDED / MOST POPULAR
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <span className="text-xs font-bold text-[#FF5722] uppercase tracking-wider">
-                  PRO CHASER
-                </span>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    ${prices.pro}
-                  </span>
-                  <span className="text-slate-400 font-semibold text-sm">/mo</span>
-                </div>
-                <p className="text-xs text-[#64748B] mt-2">
-                  Unlimited automated invoice recovery and payment gateway routing.
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100 space-y-3.5 text-xs">
-                <ul className="space-y-3 text-slate-700 font-medium">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-bold text-slate-900">Unlimited invoices</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-bold text-slate-900">WhatsApp &amp; Email chasing</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Custom gateway links</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>High-ticket wire details</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="pt-8">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGoToDashboard}
-                className="w-full py-4 px-4 rounded-xl bg-[#FF5722] hover:bg-[#F4511E] text-white font-black text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
-              >
-                Upgrade to Pro
-              </motion.button>
-            </div>
-          </motion.div>
-
-          {/* 3. AGENCY / SCALE PLAN ($49 /mo) - PURPLE BORDER MATCHING SCREENSHOT */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            whileHover={{ y: -6, transition: { duration: 0.2 } }}
-            className="bg-white rounded-2xl p-7 sm:p-8 border-2 border-purple-400 shadow-md flex flex-col justify-between relative hover:shadow-xl transition-all"
-          >
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">
-                    AGENCY / SCALE
-                  </span>
-                  <span className="bg-purple-100 text-purple-700 text-[10.5px] font-bold px-2 py-0.5 rounded-md">
-                    Current
-                  </span>
-                </div>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    ${prices.agency}
-                  </span>
-                  <span className="text-slate-400 font-semibold text-sm">/mo</span>
-                </div>
-                <p className="text-xs text-[#64748B] mt-2">
-                  Full multi-organization automated collections powerhouse.
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100 space-y-3.5 text-xs">
-                <ul className="space-y-3 text-slate-700 font-medium">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Everything in Pro</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Multi-brand profiles</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Priority escalation queue</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Dedicated account support</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="pt-8">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGoToDashboard}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white font-black text-sm shadow-xs transition-all cursor-pointer"
-              >
-                Current Plan
-              </motion.button>
-            </div>
-          </motion.div>
-        </div>
+        <PricingPlans onSelectPlan={() => handleGoToDashboard()} />
       </section>
 
       {/* 7. FAQ Section with Smooth AnimatePresence Accordion */}

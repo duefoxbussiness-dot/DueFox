@@ -160,13 +160,9 @@ export default function Dashboard() {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-theme', 'dark');
-      document.body.style.backgroundColor = '#0F172A';
-      document.body.style.color = '#F8FAFC';
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.setAttribute('data-theme', 'light');
-      document.body.style.backgroundColor = '#F8FAFC';
-      document.body.style.color = '#0F172A';
     }
   }, [theme]);
 

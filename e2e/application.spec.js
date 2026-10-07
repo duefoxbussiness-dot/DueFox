@@ -17,6 +17,33 @@ test('renders the demo dashboard and invoice count', async ({ page }) => {
   await expect(page.getByRole('row').filter({ hasText: 'Jordan Lee' })).toBeVisible();
 });
 
+test('keeps the initial page background aligned with the saved theme across reloads and viewports', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('e2e_theme_initialized')) return;
+    localStorage.setItem('duefox_theme', 'dark');
+    sessionStorage.setItem('e2e_theme_initialized', 'true');
+  });
+
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await expect.poll(() => page.evaluate(() => {
+      const root = document.documentElement;
+      const background = getComputedStyle(document.body).backgroundColor;
+      return root.classList.contains('dark') &&
+        getComputedStyle(root).backgroundColor === background &&
+        getComputedStyle(document.getElementById('root')).backgroundColor === background;
+    })).toBe(true);
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(15, 23, 42)');
+    await page.reload();
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(15, 23, 42)');
+  }
+
+  await page.evaluate(() => localStorage.setItem('duefox_theme', 'light'));
+  await page.reload();
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(248, 250, 252)');
+});
+
 test('updates shared pricing for annual billing and expands comparisons and FAQs', async ({ page }) => {
   await page.goto('/');
 

@@ -1,8 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="background-color: var(--app-background); color: var(--app-foreground)">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        color-scheme: light;
+        --app-background: #f8fafc;
+        --app-foreground: #0f172a;
+      }
+      :root.dark {
+        color-scheme: dark;
+        --app-background: #0f172a;
+        --app-foreground: #f8fafc;
+      }
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        background-color: var(--app-background);
+        color: var(--app-foreground);
+      }
+    </style>
+    <script>
+      try {
+        if (localStorage.getItem('duefox_theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch {}
+    </script>
     <title>DueFox | Automated B2B Invoice Chasing &amp; Payment Gateway</title>
     <meta name="description" content="Stop chasing unpaid invoices manually. DueFox automates payment reminders via Email and WhatsApp to get your agency and freelance invoices settled faster." />
     <link rel="icon" type="image/svg+xml" href="/duefox-logo.svg" />
@@ -20,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#F8FAFC] text-slate-900 antialiased font-sans selection:bg-[#FF5722] selection:text-white">
+  <body class="antialiased font-sans selection:bg-[#FF5722] selection:text-white" style="background-color: var(--app-background); color: var(--app-foreground)">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

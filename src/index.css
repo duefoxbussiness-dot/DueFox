@@ -3,9 +3,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html,
+  body {
+    min-height: 100%;
+    background-color: var(--app-background, #F8FAFC);
+    color: var(--app-foreground, #0F172A);
+  }
+
+  #root {
+    min-height: 100vh;
+    background-color: var(--app-background, #F8FAFC);
+    color: var(--app-foreground, #0F172A);
+  }
+
   body {
     font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    transition: background-color 200ms ease, color 200ms ease;
   }
 
   code, pre, .font-mono {
@@ -50,4 +62,3 @@
 .ring-electric {
   --tw-ring-color: #FF5722;
 }
-

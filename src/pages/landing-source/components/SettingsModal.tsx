@@ -99,7 +99,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <Sparkles className="w-3.5 h-3.5" />
             Subscription &amp; Plan
             <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 bg-white/20 rounded-md">
-              {formData.currentPlan === 'Starter' ? 'Basic' : formData.currentPlan}
+              {formData.currentPlan === 'Pro' ? 'Pro Chaser' : 'Agency / Scale'}
             </span>
           </button>
         </div>
@@ -321,8 +321,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === 'plan' && (
             <PricingPlans
               compact
-              selectedPlan={formData.currentPlan === 'Starter' ? 'free' : formData.currentPlan === 'Pro' ? 'pro' : 'agency'}
-              onSelectPlan={(plan) => setFormData({ ...formData, currentPlan: plan === 'free' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Agency' })}
+              selectedPlan={formData.currentPlan === 'Pro' ? 'pro' : 'agency'}
+              onSelectPlan={(plan) => setFormData({ ...formData, currentPlan: plan === 'agency' ? 'Agency' : 'Pro' })}
             />
           )}
         </div>

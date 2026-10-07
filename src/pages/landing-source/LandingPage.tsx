@@ -331,7 +331,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               onClick={handleGoToDashboard}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#FF5722] hover:bg-[#F4511E] text-white px-8 py-4 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition-all duration-150 cursor-pointer"
             >
-              <span>Start Free (Up to 10 Invoices)</span>
+              <span>Start 7-Day Free Trial</span>
               <ArrowRight className="w-5 h-5" />
             </motion.button>
 
@@ -354,7 +354,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             className="pt-3 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-500"
           >
             <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-emerald-500" /> Free $0 tier available
+              <Check className="w-4 h-4 text-emerald-500" /> No credit card required
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-emerald-500" /> 2-minute setup
@@ -984,7 +984,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               Ready to Eliminate Unpaid Invoice Anxiety For Good?
             </h2>
             <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              Join 1,400+ freelancers and agency owners collecting on time with automated dignity. Start with our free tier or upgrade as your business expands.
+              Join 1,400+ freelancers and agency owners collecting on time with automated dignity. Get full access to automated WhatsApp/email chasing and custom gateway links for 7 days.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -994,14 +994,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                 onClick={() => { window.location.href = '/login'; }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#FF5722] hover:bg-[#F4511E] text-white px-8 py-4 rounded-xl font-black text-base shadow-lg transition-all duration-150 cursor-pointer"
               >
-                <span>Launch App &amp; Start Free</span>
+                <span>Start 7-Day Free Trial</span>
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-2 text-xs font-medium text-slate-300">
-              <span>✓ 14-day trial</span>
-              <span>✓ No credit card needed</span>
+              <span>✓ 7-day free trial</span>
+              <span>✓ No credit card required</span>
               <span>✓ Instant n8n/Supabase setup</span>
             </div>
           </div>

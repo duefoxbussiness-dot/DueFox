@@ -44,13 +44,19 @@ test('keeps the initial page background aligned with the saved theme across relo
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(248, 250, 252)');
 });
 
-test('updates shared pricing for annual billing and expands comparisons and FAQs', async ({ page }) => {
+test('shows two trial tiers with annual billing, comparisons, and FAQs', async ({ page }) => {
   await page.goto('/');
 
   const proPlan = page.locator('article').filter({ hasText: 'Pro Chaser' });
-  const agencyPlan = page.locator('article').filter({ hasText: 'Agency' });
+  const agencyPlan = page.locator('article').filter({ hasText: 'Agency / Scale' });
+  await expect(page.getByText('Start 7-Day Free Trial • No Credit Card Required')).toBeVisible();
+  await expect(page.getByText('Get full access to automated WhatsApp/email chasing & custom gateway links for 7 days.')).toBeVisible();
+  await expect(page.locator('article')).toHaveCount(2);
   await expect(proPlan.getByText('$9', { exact: true })).toBeVisible();
   await expect(agencyPlan.getByText('$49', { exact: true })).toBeVisible();
+  await expect(proPlan.getByRole('button', { name: 'Start 7-Day Free Trial' })).toBeVisible();
+  await expect(agencyPlan.getByRole('button', { name: 'Start Agency Trial' })).toBeVisible();
+  await expect(proPlan.getByText('Most Popular')).toBeVisible();
   await expect(page.getByText('Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.')).toBeVisible();
 
   await page.getByRole('button', { name: /Annual.*Save 20%/ }).click();
@@ -61,7 +67,6 @@ test('updates shared pricing for annual billing and expands comparisons and FAQs
 
   await page.getByRole('button', { name: 'Compare All Features' }).click();
   const invoiceLimitRow = page.getByRole('row').filter({ hasText: 'Active invoices' });
-  await expect(invoiceLimitRow.getByText('10')).toBeVisible();
   await expect(invoiceLimitRow.getByText('Unlimited')).toHaveCount(2);
 
   await page.getByRole('button', { name: 'Can I switch plans anytime?' }).click();
@@ -74,7 +79,10 @@ test('keeps dashboard pricing compact and usable on mobile', async ({ page }) =>
 
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('heading', { name: 'Company & Payment Settings' })).toBeVisible();
-  await expect(dialog.locator('article')).toHaveCount(3);
+  await expect(dialog.locator('article')).toHaveCount(2);
+  await expect(dialog.getByText('Start 7-Day Free Trial • No Credit Card Required')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Start 7-Day Free Trial' })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Start Agency Trial' })).toBeVisible();
   await expect(dialog.getByText('Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.')).toHaveCount(0);
   await expect(dialog.getByText('14-Day Money-Back Guarantee')).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: 'Compare All Features' })).toHaveCount(0);
@@ -90,7 +98,6 @@ test('keeps dashboard pricing compact and usable on mobile', async ({ page }) =>
     cards.map((card) => card.getBoundingClientRect().top)
   );
   expect(cardTops[0]).toBeLessThan(cardTops[1]);
-  expect(cardTops[1]).toBeLessThan(cardTops[2]);
 });
 
 test('keeps live demo settings pricing compact on mobile', async ({ page }) => {
@@ -99,6 +106,8 @@ test('keeps live demo settings pricing compact on mobile', async ({ page }) => {
 
   const annualBilling = page.getByRole('button', { name: /Annual.*Save 20%/ });
   await expect(annualBilling).toBeVisible();
+  await expect(page.getByText('Start 7-Day Free Trial • No Credit Card Required')).toBeVisible();
+  await expect(page.getByText('Get full access to automated WhatsApp/email chasing & custom gateway links for 7 days.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Compare All Features' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Pricing FAQs' })).toHaveCount(0);
   await expect(page.getByText('Cancel Anytime in 1-Click')).toHaveCount(0);
@@ -106,10 +115,9 @@ test('keeps live demo settings pricing compact on mobile', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   const cards = page.locator('article');
-  await expect(cards).toHaveCount(3);
+  await expect(cards).toHaveCount(2);
   const cardTops = await cards.evaluateAll((items) => items.map((card) => card.getBoundingClientRect().top));
   expect(cardTops[0]).toBeLessThan(cardTops[1]);
-  expect(cardTops[1]).toBeLessThan(cardTops[2]);
 });
 
 test('opens the add invoice modal with the expected fields', async ({ page }) => {

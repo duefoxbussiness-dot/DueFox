@@ -40,5 +40,5 @@ export interface BusinessProfile {
     swiftCode: string;
     routingOrIfsc?: string;
   };
-  currentPlan: 'Starter' | 'Pro' | 'Agency';
+  currentPlan: 'Pro' | 'Agency';
 }

@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToLanding }) => {
     address: '',
     taxId: '',
     directGatewayLink: '',
-    currentPlan: 'Starter',
+    currentPlan: 'Pro',
     bankDetails: {
       accountHolder: '',
       bankName: '',

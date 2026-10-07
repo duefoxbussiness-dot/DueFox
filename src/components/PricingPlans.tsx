@@ -19,28 +19,13 @@ const plans: Array<{
   features: string[];
 }> = [
   {
-    id: 'free',
-    name: 'Basic',
-    description: 'For new freelancers managing initial client invoices.',
-    monthlyPrice: 0,
-    annualPrice: 0,
-    annualTotal: 0,
-    cta: 'Start Free (No Card Needed)',
-    features: [
-      '10 Active Invoices',
-      'Automated Email Reminders',
-      'Standard Payment Page Links',
-      'Basic Recovery Tracking',
-    ],
-  },
-  {
     id: 'pro',
     name: 'Pro Chaser',
     description: 'For active freelancers & solopreneurs tired of chasing overdue payments manually.',
     monthlyPrice: 9,
     annualPrice: 7,
     annualTotal: 84,
-    cta: 'Get Started with Pro',
+    cta: 'Start 7-Day Free Trial',
     features: [
       'Unlimited Active Invoices',
       'Automated Email & WhatsApp Chasing',
@@ -53,12 +38,12 @@ const plans: Array<{
   },
   {
     id: 'agency',
-    name: 'Agency',
+    name: 'Agency / Scale',
     description: 'For growing agencies & teams managing multi-client high-ticket portfolios.',
     monthlyPrice: 49,
     annualPrice: 39,
     annualTotal: 468,
-    cta: 'Scale Your Agency',
+    cta: 'Start Agency Trial',
     features: [
       'Everything in Pro',
       'Multi-Brand Profiles & White-Labeling',
@@ -88,11 +73,11 @@ const comparisonFeatures = [
 ];
 
 const featureAvailability: Record<string, PlanTier[]> = {
-  'Active invoices': ['free', 'pro', 'agency'],
-  'Automated email reminders': ['free', 'pro', 'agency'],
+  'Active invoices': ['pro', 'agency'],
+  'Automated email reminders': ['pro', 'agency'],
   'Automated WhatsApp chasing': ['pro', 'agency'],
   'Progressive tone escalation': ['pro', 'agency'],
-  'Public payment page links': ['free', 'pro', 'agency'],
+  'Public payment page links': ['pro', 'agency'],
   'UPI / QR / bank wire details': ['pro', 'agency'],
   'Custom branding': ['pro', 'agency'],
   'Read receipts & analytics': ['pro', 'agency'],
@@ -138,10 +123,19 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
             Plans That Pay For Themselves on Invoice #1
           </h2>
           <p className="text-sm text-slate-600 sm:text-base">
-            Start free or scale your collections with automated invoice chasing.
+            Choose the plan that fits your team and start with a 7-day free trial.
           </p>
         </header>
       )}
+
+      <div className="mx-auto max-w-2xl text-center">
+        <span className="inline-flex max-w-full items-center justify-center rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-[#FF5722] sm:text-sm">
+          Start 7-Day Free Trial • No Credit Card Required
+        </span>
+        <p className="mt-3 text-xs leading-5 text-slate-600 sm:text-sm">
+          Get full access to automated WhatsApp/email chasing &amp; custom gateway links for 7 days.
+        </p>
+      </div>
 
       <div className="mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
         {(['monthly', 'annual'] as const).map((cycle) => {
@@ -177,7 +171,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
         </aside>
       )}
 
-      <div className={`grid min-w-0 grid-cols-1 items-stretch ${compact ? 'gap-4' : 'gap-5'} lg:grid-cols-3`}>
+      <div className={`grid min-w-0 grid-cols-1 items-stretch ${compact ? 'gap-4' : 'gap-5'} lg:grid-cols-2`}>
         {plans.map((plan) => {
           const isPro = plan.id === 'pro';
           const isSelected = selectedPlan === plan.id;
@@ -195,13 +189,13 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
             >
               {isPro && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#FF5722] px-3.5 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow">
-                  Recommended / Most Popular
+                  Most Popular
                 </div>
               )}
               <div className={isPro ? 'pt-2' : ''}>
                 <div className="flex items-center justify-between gap-2">
                   <span className={`text-xs font-extrabold uppercase tracking-wider ${
-                    isPro ? 'text-[#FF5722]' : plan.id === 'agency' ? 'text-purple-700' : 'text-slate-500'
+                    isPro ? 'text-[#FF5722]' : 'text-purple-700'
                   }`}>
                     {plan.name}
                   </span>
@@ -262,8 +256,8 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
       {showMarketingDetails && (
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-semibold text-slate-700">
           {[
-            '14-Day Money-Back Guarantee',
-            'Cancel Anytime in 1-Click',
+            'No Credit Card Required',
+            'Cancel Anytime',
             '0% Platform Transaction Fees',
           ].map((badge) => (
             <span key={badge} className="inline-flex items-center gap-2">
@@ -300,7 +294,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
                     {plans.map((plan) => (
                       <td key={plan.id} className="px-4 py-3 text-slate-600">
                         {feature === 'Active invoices'
-                          ? plan.id === 'free' ? '10' : 'Unlimited'
+                            ? 'Unlimited'
                           : featureAvailability[feature].includes(plan.id)
                             ? <Check className="h-4 w-4 text-emerald-600" aria-label="Included" />
                             : <span aria-label="Not included">—</span>}

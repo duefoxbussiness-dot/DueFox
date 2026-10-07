@@ -213,7 +213,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center px-2 py-3 sm:px-4">
       {dispatchSucceeded && (
         <div role="status" aria-live="polite" className="fixed top-5 right-5 z-60 flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg">
           <Check className="h-4 w-4" />
@@ -221,7 +221,7 @@ Hi ${invoice.client.name}, this is ${senderName} from *${companyName}*. Invoice 
         </div>
       )}
       <div
-        className="relative bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative bg-white w-full max-w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
       >

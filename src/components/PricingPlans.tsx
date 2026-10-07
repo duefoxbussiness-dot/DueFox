@@ -127,9 +127,10 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [showComparison, setShowComparison] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const showMarketingDetails = !compact;
 
   return (
-    <div className={compact ? 'space-y-7' : 'space-y-10'}>
+    <div className={compact ? 'w-full min-w-0 space-y-5' : 'space-y-10'}>
       {!compact && (
         <header className="mx-auto max-w-3xl space-y-3 text-center">
           <span className="text-xs font-bold tracking-widest text-[#FF5722] uppercase">Transparent, flat pricing</span>
@@ -142,7 +143,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
         </header>
       )}
 
-      <div className="mx-auto flex w-fit flex-wrap items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+      <div className="mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
         {(['monthly', 'annual'] as const).map((cycle) => {
           const active = billingCycle === cycle;
           return (
@@ -151,13 +152,13 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
               type="button"
               onClick={() => setBillingCycle(cycle)}
               aria-pressed={active}
-              className={`relative rounded-lg px-4 py-2 text-xs font-bold transition-colors ${
+              className={`relative flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs font-bold transition-colors sm:px-4 ${
                 active ? 'bg-[#FF5722] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {cycle === 'monthly' ? 'Monthly' : 'Annual'}
               {cycle === 'annual' && (
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] ${
+                <span className={`rounded-full px-2 py-0.5 text-[10px] ${
                   active ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
                 }`}>
                   Save 20% · 2 Months Free
@@ -168,13 +169,15 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
         })}
       </div>
 
-      <aside className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-amber-50 px-5 py-4 text-center shadow-sm sm:px-8">
-        <p className="text-sm font-bold text-slate-900 sm:text-base">
-          Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.
-        </p>
-      </aside>
+      {showMarketingDetails && (
+        <aside className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-amber-50 px-5 py-4 text-center shadow-sm sm:px-8">
+          <p className="text-sm font-bold text-slate-900 sm:text-base">
+            Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.
+          </p>
+        </aside>
+      )}
 
-      <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+      <div className={`grid min-w-0 grid-cols-1 items-stretch ${compact ? 'gap-4' : 'gap-5'} lg:grid-cols-3`}>
         {plans.map((plan) => {
           const isPro = plan.id === 'pro';
           const isSelected = selectedPlan === plan.id;
@@ -182,7 +185,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
           return (
             <article
               key={plan.id}
-              className={`relative flex flex-col rounded-2xl bg-white p-5 sm:p-7 ${
+              className={`relative flex min-w-0 flex-col rounded-2xl bg-white ${compact ? 'p-4 sm:p-5' : 'p-5 sm:p-7'} ${
                 isPro
                   ? 'border-2 border-[#FF5722] shadow-[0_14px_45px_-18px_rgba(255,87,34,0.55)] lg:-translate-y-2'
                   : plan.id === 'agency'
@@ -229,8 +232,8 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
                 <p className="mt-3 min-h-10 text-xs leading-5 text-slate-600">{plan.description}</p>
               </div>
 
-              <ul className="mt-5 flex-1 space-y-3 border-t border-slate-100 pt-5 text-xs leading-5 text-slate-700">
-                {plan.features.map((feature) => (
+              <ul className={`mt-4 flex-1 space-y-2 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-700 ${compact ? 'sm:space-y-1.5' : 'sm:space-y-3'}`}>
+                {(compact ? plan.features.slice(0, 3) : plan.features).map((feature) => (
                   <li key={feature} className="flex items-start gap-2.5">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                     <span>{feature}</span>
@@ -241,7 +244,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
               <button
                 type="button"
                 onClick={() => onSelectPlan(plan.id)}
-                className={`mt-6 w-full rounded-xl px-4 py-3 text-xs font-extrabold transition-all sm:text-sm ${
+                className={`mt-5 w-full whitespace-normal break-words rounded-xl px-3 py-3 text-xs font-extrabold transition-all sm:px-4 sm:text-sm ${
                   isPro
                     ? 'bg-[#FF5722] text-white shadow-md hover:bg-[#F4511E] hover:shadow-lg'
                     : plan.id === 'agency'
@@ -256,20 +259,22 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
         })}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-semibold text-slate-700">
-        {[
-          '14-Day Money-Back Guarantee',
-          'Cancel Anytime in 1-Click',
-          '0% Platform Transaction Fees',
-        ].map((badge) => (
-          <span key={badge} className="inline-flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
-            {badge}
-          </span>
-        ))}
-      </div>
+      {showMarketingDetails && (
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-semibold text-slate-700">
+          {[
+            '14-Day Money-Back Guarantee',
+            'Cancel Anytime in 1-Click',
+            '0% Platform Transaction Fees',
+          ].map((badge) => (
+            <span key={badge} className="inline-flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              {badge}
+            </span>
+          ))}
+        </div>
+      )}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      {showMarketingDetails && <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <button
           type="button"
           aria-expanded={showComparison}
@@ -307,9 +312,9 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
             </table>
           </div>
         )}
-      </section>
+      </section>}
 
-      <section className="space-y-3">
+      {showMarketingDetails && <section className="space-y-3">
         <h3 className="text-center text-lg font-extrabold text-slate-900">Pricing FAQs</h3>
         <div className="space-y-2">
           {faqs.map((faq, index) => {
@@ -330,7 +335,7 @@ export function PricingPlans({ selectedPlan, onSelectPlan, compact = false }: Pr
             );
           })}
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

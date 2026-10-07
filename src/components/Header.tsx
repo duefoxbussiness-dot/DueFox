@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      <div className="w-full px-6 lg:px-10 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-2 sm:px-4 lg:px-10 min-h-16 py-2 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
         {/* Left: Clean Brand Wordmark */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5">
@@ -42,27 +42,29 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right: invoice actions, subscription, user profile, and sign out */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 whitespace-nowrap">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3.5">
           {/* 1. + Add Invoice Primary Button */}
           <button
             type="button"
             onClick={onOpenAddModal}
+            aria-label="Add Invoice"
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-electric hover:bg-[#F4511E] active:bg-[#E64A19] rounded-xl transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap"
             title="Create and register a new invoice"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Add Invoice</span>
+            <span className="hidden sm:inline">Add Invoice</span>
           </button>
 
           {/* 2. "⚡ Upgrade Plan" / "Subscription" CTA Button */}
           <button
             type="button"
             onClick={onOpenUpgradePlan}
+            aria-label="Upgrade Plan"
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/25 border border-amber-500/30 rounded-xl transition-all shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap"
             title="View subscription tiers and upgrade plan"
           >
             <Zap className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0" />
-            <span>Upgrade Plan</span>
+            <span className="hidden sm:inline">Upgrade Plan</span>
           </button>
 
           {/* 3. User Profile Section */}
@@ -104,11 +106,12 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onSignOut}
+            aria-label="Sign Out"
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             title="Sign out of dueFox"
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            <span>Sign Out</span>
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </div>

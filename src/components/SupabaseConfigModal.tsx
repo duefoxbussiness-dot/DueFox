@@ -74,9 +74,9 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center px-2 py-3 sm:px-4">
       <div
-        className="relative bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative bg-white w-full max-w-full sm:max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
       >

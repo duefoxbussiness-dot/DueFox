@@ -41,11 +41,59 @@ test('updates shared pricing for annual billing and expands comparisons and FAQs
   await expect(page.getByText('Yes, upgrade or downgrade instantly whenever your needs change.')).toBeVisible();
 });
 
+test('keeps dashboard pricing compact and usable on mobile', async ({ page }) => {
+  await openDemoDashboard(page);
+  await page.getByRole('button', { name: 'Upgrade Plan' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Company & Payment Settings' })).toBeVisible();
+  await expect(dialog.locator('article')).toHaveCount(3);
+  await expect(dialog.getByText('Recover just 1 unpaid $100 invoice, and DueFox pays for itself for an entire year.')).toHaveCount(0);
+  await expect(dialog.getByText('14-Day Money-Back Guarantee')).toHaveCount(0);
+  await expect(dialog.getByRole('button', { name: 'Compare All Features' })).toHaveCount(0);
+  await expect(dialog.getByRole('heading', { name: 'Pricing FAQs' })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dialogBounds = await dialog.boundingBox();
+  expect(dialogBounds).not.toBeNull();
+  expect(dialogBounds.width).toBeLessThanOrEqual(390);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+
+  const cardTops = await dialog.locator('article').evaluateAll((cards) =>
+    cards.map((card) => card.getBoundingClientRect().top)
+  );
+  expect(cardTops[0]).toBeLessThan(cardTops[1]);
+  expect(cardTops[1]).toBeLessThan(cardTops[2]);
+});
+
+test('keeps live demo settings pricing compact on mobile', async ({ page }) => {
+  await page.goto('/#dashboard');
+  await page.getByRole('button', { name: 'Upgrade Plan' }).click();
+
+  const annualBilling = page.getByRole('button', { name: /Annual.*Save 20%/ });
+  await expect(annualBilling).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Compare All Features' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Pricing FAQs' })).toHaveCount(0);
+  await expect(page.getByText('Cancel Anytime in 1-Click')).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  const cards = page.locator('article');
+  await expect(cards).toHaveCount(3);
+  const cardTops = await cards.evaluateAll((items) => items.map((card) => card.getBoundingClientRect().top));
+  expect(cardTops[0]).toBeLessThan(cardTops[1]);
+  expect(cardTops[1]).toBeLessThan(cardTops[2]);
+});
+
 test('opens the add invoice modal with the expected fields', async ({ page }) => {
   await openDemoDashboard(page);
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Add Invoice' }).click();
 
   const dialog = page.getByRole('dialog');
+  const dialogBounds = await dialog.boundingBox();
+  expect(dialogBounds).not.toBeNull();
+  expect(dialogBounds.width).toBeLessThanOrEqual(390);
   await expect(dialog.getByRole('heading', { name: 'Add New Invoice' })).toBeVisible();
   await expect(dialog.getByPlaceholder('e.g. John Doe or Acme Corp')).toBeVisible();
   await expect(dialog.getByPlaceholder('billing@client.com')).toBeVisible();

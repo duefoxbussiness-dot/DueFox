@@ -47,12 +47,12 @@ export const ResumeChaseModal: React.FC<ResumeChaseModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-2 py-3 sm:px-4 bg-slate-900/60 backdrop-blur-sm">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="resume-chase-title"
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        className="w-full max-w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
       >
         <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3.5 dark:border-slate-800 dark:bg-slate-800/50 sm:px-6">
           <div className="flex items-center gap-3">

@@ -576,7 +576,7 @@ export default function Dashboard() {
       />
 
       {/* Main Workspace Canvas - Full Desktop Width */}
-      <main className="flex-1 w-full px-6 lg:px-10 py-6 space-y-6">
+      <main className="flex-1 w-full min-w-0 px-2 sm:px-4 lg:px-10 py-4 sm:py-6 space-y-6">
         {/* Top Row: Stat Cards */}
         <section aria-label="Dashboard Statistics">
           <StatCards

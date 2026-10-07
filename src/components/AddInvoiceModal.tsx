@@ -138,9 +138,9 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center px-2 py-3 sm:px-4">
       <div
-        className="relative bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative bg-white w-full max-w-full sm:max-w-xl max-h-[85vh] rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -179,7 +179,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto bg-white">
+        <form onSubmit={handleSubmit} className="min-h-0 flex-1 p-3 sm:p-6 space-y-4 overflow-y-auto bg-white">
           {error && (
             <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
               {error}

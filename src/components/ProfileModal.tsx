@@ -149,15 +149,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-center justify-center px-2 py-3 sm:px-4 animate-in fade-in duration-200">
       <div
-        className={`relative bg-white w-full ${activeTab === 'plan' ? 'max-w-7xl' : 'max-w-2xl'} rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]`}
+        className={`relative bg-white w-full max-w-full ${activeTab === 'plan' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center font-bold shadow-2xs">
               <Building2 className="w-5 h-5" />
@@ -182,7 +182,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* Tab Navigation - Light Slate Pills with Active Orange */}
-        <div className="flex items-center px-6 py-3 border-b border-slate-200 bg-slate-50/70 shrink-0 gap-2 sm:gap-3 overflow-x-auto">
+        <div className="flex items-center px-3 py-3 sm:px-6 border-b border-slate-200 bg-slate-50/70 shrink-0 gap-2 sm:gap-3 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('profile')}
@@ -233,7 +233,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* Scrollable Form Content */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 bg-white">
+        <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 space-y-5 bg-white">
           {error && (
             <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
               <span>{error}</span>

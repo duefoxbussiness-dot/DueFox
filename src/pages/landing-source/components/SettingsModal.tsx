@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Building2, CreditCard, Sparkles, Check, Crown, ShieldAlert, Landmark, CheckCircle2 } from 'lucide-react';
 import { BusinessProfile, Currency } from '../types';
 import { PricingPlans } from '../../../components/PricingPlans';
@@ -22,6 +22,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [formData, setFormData] = useState<BusinessProfile>(profile);
   const [isSavedNotice, setIsSavedNotice] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) setActiveTab(defaultTab);
+  }, [isOpen, defaultTab]);
+
   if (!isOpen) return null;
 
   const handleSave = (e?: React.FormEvent) => {
@@ -35,10 +39,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className={`relative w-full ${activeTab === 'plan' ? 'max-w-7xl' : 'max-w-2xl'} max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-2 py-3 sm:px-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className={`relative w-full max-w-full ${activeTab === 'plan' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#FF5722]/10 text-[#FF5722] flex items-center justify-center">
               <Building2 className="w-5 h-5" />
@@ -101,7 +105,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Tab Content */}
-        <div className="overflow-y-auto p-6 space-y-5 flex-1 text-slate-800 text-xs">
+        <div className="min-h-0 overflow-y-auto p-3 sm:p-5 space-y-5 flex-1 text-slate-800 text-xs">
           {activeTab === 'profile' && (
             <div className="space-y-4">
               <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-amber-800 text-xs flex items-center gap-2.5">

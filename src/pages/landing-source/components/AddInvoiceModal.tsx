@@ -74,8 +74,8 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-xl max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-2 py-3 sm:px-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-full sm:max-w-xl max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
         {/* Modal Header matching Screenshot */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
         </div>
 
         {/* Form Body - Scrollable */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-6 flex-1 text-slate-800">
+        <form onSubmit={handleSubmit} className="min-h-0 overflow-y-auto p-3 sm:p-6 space-y-6 flex-1 text-slate-800">
           {/* Section 1: Client Contact Information */}
           <div className="space-y-4">
             <div className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">

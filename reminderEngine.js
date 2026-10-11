@@ -1,11 +1,19 @@
 import 'dotenv/config';
-import { resolve } from 'node:path';
+import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { isBoom } from '@hapi/boom';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { pathToFileURL } from 'node:url';
+import pino from 'pino';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const PAGE_SIZE = 500;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const WHATSAPP_CONNECTION_TIMEOUT_MS = 15000;
+const authDirectory = join(dirname(fileURLToPath(import.meta.url)), 'auth_info_baileys');
+let whatsappConnectionPromise;
+let whatsappSocket;
+let whatsappMessageSent = false;
 
 function requiredEnv(name) {
   const value = process.env[name]?.trim();
@@ -13,6 +21,12 @@ function requiredEnv(name) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
+}
+
+function formatWhatsAppPhone(phone) {
+  const digits = String(phone ?? '').replace(/\D/g, '');
+  if (digits.length < 7 || digits.length > 15) return null;
+  return digits;
 }
 
 function getConfiguration() {
@@ -50,6 +64,13 @@ function getTone(daysOverdue) {
 function getPaymentLink(invoice) {
   const paymentLink = invoice.payment_link?.trim();
   return paymentLink ? `\nPayment link: ${paymentLink}` : '';
+}
+
+function formatInvoiceAmount(invoice) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: invoice.currency || 'USD',
+  }).format(Number(invoice.amount));
 }
 
 function getEmailHtml(invoice, client) {
@@ -232,10 +253,7 @@ function getEmailHtml(invoice, client) {
 
 function getReminder(invoice, client, daysOverdue, tone) {
   const invoiceNumber = invoice.invoice_number || `Invoice ${invoice.id}`;
-  const amount = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: invoice.currency || 'USD',
-  }).format(Number(invoice.amount));
+  const amount = formatInvoiceAmount(invoice);
   const paymentLink = getPaymentLink(invoice);
 
   if (tone === 'Strict') {
@@ -318,6 +336,16 @@ async function processInvoice(invoice, dependencies) {
     html: reminder.html,
   });
 
+  let whatsappSent = false;
+  try {
+    whatsappSent = await sendWhatsAppReminder(invoice, client);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[ReminderEngine] WhatsApp reminder for invoice ${invoice.id} failed; email was delivered: ${message}`,
+    );
+  }
+
   const { error } = await supabase
     .from('invoices')
     .update({
@@ -331,9 +359,135 @@ async function processInvoice(invoice, dependencies) {
   }
 
   console.info(
-    `[ReminderEngine] Sent ${tone} email reminder for invoice ${invoice.id} (${daysOverdue} days overdue); invoice update attempted.`,
+    `[ReminderEngine] Sent ${tone} email reminder for invoice ${invoice.id} (${daysOverdue} days overdue); WhatsApp ${whatsappSent ? 'sent' : 'not sent'}; invoice update recorded.`,
   );
   return 'sent';
+}
+
+async function connectToWhatsApp() {
+  const { state, saveCreds } = await useMultiFileAuthState(authDirectory);
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let socket;
+    let timeout;
+    const finish = (connection) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(connection);
+    };
+    timeout = setTimeout(() => {
+      console.warn('[ReminderEngine] WhatsApp connection timed out; continuing with email reminders only.');
+      socket?.end();
+      finish(null);
+    }, WHATSAPP_CONNECTION_TIMEOUT_MS);
+
+    try {
+      socket = makeWASocket({
+        auth: state,
+        logger: pino({ level: 'silent' }),
+      });
+    } catch (error) {
+      clearTimeout(timeout);
+      reject(error);
+      return;
+    }
+
+    socket.ev.on('creds.update', () => {
+      saveCreds().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[ReminderEngine] Could not save WhatsApp session credentials: ${message}`);
+      });
+    });
+    socket.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+      if (qr) {
+        console.warn('[ReminderEngine] WhatsApp session is not authenticated; pair it with whatsappAuth.js. Continuing with email reminders only.');
+        socket.end();
+        finish(null);
+      } else if (connection === 'open') {
+        console.info('[ReminderEngine] WhatsApp connected.');
+        whatsappSocket = socket;
+        finish(socket);
+      } else if (connection === 'close') {
+        const disconnectError = lastDisconnect?.error;
+        const statusCode = isBoom(disconnectError)
+          ? disconnectError.output.statusCode
+          : undefined;
+        const isConflict = statusCode === DisconnectReason.connectionReplaced;
+        const reason = isConflict
+          ? 'connection conflict (another WhatsApp session replaced this one)'
+          : statusCode === DisconnectReason.loggedOut
+            ? 'session logged out'
+            : disconnectError instanceof Error
+              ? disconnectError.message
+              : 'connection closed';
+        if (whatsappSocket === socket) whatsappSocket = undefined;
+        whatsappConnectionPromise = Promise.resolve(null);
+        console.warn(`[ReminderEngine] WhatsApp ${reason}; continuing with email reminders only.`);
+        finish(null);
+      }
+    });
+  });
+}
+
+async function sendWhatsAppReminder(invoice, client) {
+  const cleanPhone = formatWhatsAppPhone(client.phone);
+  if (!cleanPhone) {
+    console.warn(`[ReminderEngine] Invoice ${invoice.id} client has no valid phone number; WhatsApp reminder skipped.`);
+    return false;
+  }
+
+  whatsappConnectionPromise ??= connectToWhatsApp().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[ReminderEngine] Could not initialize WhatsApp; continuing with email reminders only: ${message}`);
+    return null;
+  });
+
+  const socket = await whatsappConnectionPromise;
+  if (!socket) return false;
+
+  const clientName = client.name || 'there';
+  try {
+    const response = await socket.sendMessage(`${cleanPhone}@s.whatsapp.net`, {
+      text: `Hello ${clientName}, this is a reminder that your invoice for ${formatInvoiceAmount(invoice)} was due on ${invoice.due_date}.`,
+    });
+    console.log(`[ReminderEngine] WhatsApp send response for invoice ${invoice.id}:`, response);
+    whatsappMessageSent = true;
+  } catch (error) {
+    console.log(`[ReminderEngine] WhatsApp send error for invoice ${invoice.id}:`, error);
+    if (isBoom(error) && error.output.statusCode === DisconnectReason.connectionReplaced) {
+      console.warn('[ReminderEngine] WhatsApp connection conflict while sending; skipping further WhatsApp reminders in this batch.');
+      if (whatsappSocket === socket) whatsappSocket = undefined;
+      whatsappConnectionPromise = Promise.resolve(null);
+      socket.end();
+      return false;
+    }
+    throw error;
+  }
+  return true;
+}
+
+async function closeWhatsApp() {
+  const socket = whatsappSocket;
+  whatsappSocket = undefined;
+  whatsappConnectionPromise = undefined;
+
+  if (!socket) {
+    whatsappMessageSent = false;
+    return;
+  }
+
+  try {
+    if (whatsappMessageSent) {
+      await new Promise((res) => setTimeout(res, 5000));
+      whatsappMessageSent = false;
+    }
+    socket.end();
+    console.info('[ReminderEngine] WhatsApp connection closed.');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[ReminderEngine] Could not cleanly close WhatsApp connection: ${message}`);
+  }
 }
 
 async function runReminderEngine() {
@@ -352,18 +506,22 @@ async function runReminderEngine() {
   let skipped = 0;
   const failures = [];
 
-  for (const invoice of invoices) {
-    try {
-      if ((await processInvoice(invoice, { supabase, transporter, configuration, today })) === 'sent') {
-        sent += 1;
-      } else {
-        skipped += 1;
+  try {
+    for (const invoice of invoices) {
+      try {
+        if ((await processInvoice(invoice, { supabase, transporter, configuration, today })) === 'sent') {
+          sent += 1;
+        } else {
+          skipped += 1;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push({ invoiceId: invoice.id, message });
+        console.error(`[ReminderEngine] Invoice ${invoice.id} failed: ${message}`);
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      failures.push({ invoiceId: invoice.id, message });
-      console.error(`[ReminderEngine] Invoice ${invoice.id} failed: ${message}`);
     }
+  } finally {
+    await closeWhatsApp();
   }
 
   console.info(`[ReminderEngine] Complete: ${sent} sent, ${skipped} skipped, ${failures.length} failed.`);

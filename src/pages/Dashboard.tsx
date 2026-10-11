@@ -470,26 +470,6 @@ export default function Dashboard() {
     );
   };
 
-  // Handler: Batch chase all overdue invoices
-  const handleBatchChase = async () => {
-    const overdueInvoices = invoices.filter((i) => i.status !== 'paid' && i.status !== 'paused');
-    if (overdueInvoices.length === 0) return;
-
-    try {
-      for (const inv of overdueInvoices) {
-        await supabaseService.recordChase(inv.id);
-      }
-      await loadData();
-      addToast(
-        'success',
-        `Automated chase triggered for ${overdueInvoices.length} invoices`,
-        'Email & SMS payment notices dispatched via dueFox engine'
-      );
-    } catch (err: any) {
-      addToast('error', 'Batch chase failed', err?.message);
-    }
-  };
-
   // Handler: Sign out
   const handleSignOut = async () => {
     await supabaseService.signOut();
@@ -625,6 +605,7 @@ export default function Dashboard() {
               onMarkPaid={handleMarkPaid}
               onEdit={handleOpenEditModal}
               onDelete={handleDeleteInvoice}
+              onRequestChase={setChaseInvoice}
               onPauseChase={handlePauseChase}
               onRequestResumeChase={setResumeInvoice}
               onOpenAddModal={handleOpenAddModal}

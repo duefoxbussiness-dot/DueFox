@@ -184,18 +184,21 @@ test('falls back to the email composer when chase webhook dispatch fails', async
   await page.route('**/__e2e__/dispatch', (route) => route.abort('failed'));
   await openDemoDashboard(page);
 
-  const invoiceRow = page.getByRole('row').filter({ hasText: 'Jordan Lee' });
-  await expect(invoiceRow.getByText('2 chases sent')).toBeVisible();
-  await invoiceRow.getByRole('button', { name: 'Chase' }).click();
+  const invoiceRow = page.getByRole('row').filter({
+    has: page.getByRole('button', { name: 'Chase', exact: true }),
+  }).first();
+  const emailLink = await invoiceRow.getByRole('link').getAttribute('href');
+  const initialChaseCount = Number((await invoiceRow.getByText(/\d+ chases? sent/).textContent()).match(/\d+/)?.[0]);
+  await invoiceRow.getByRole('button', { name: 'Chase', exact: true }).click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('heading', { name: 'Trigger Automated Chase Reminder' })).toBeVisible();
   await dialog.getByRole('button', { name: 'Dispatch Chase Now' }).click();
 
   await expect.poll(async () => page.evaluate(() => window.__e2eOpenedUrls)).toEqual(
-    expect.arrayContaining([expect.stringMatching(/^mailto:jordan@acmecorp\.example\?subject=/)])
+    expect.arrayContaining([expect.stringContaining(`${emailLink}?subject=`)])
   );
-  await expect(invoiceRow.getByText('3 chases sent')).toBeVisible();
+  await expect(invoiceRow.getByText(`${initialChaseCount + 1} ${initialChaseCount === 0 ? 'chase' : 'chases'} sent`)).toBeVisible();
   await expect(dialog.getByText(/Failed to fetch/)).toHaveCount(0);
 });
 

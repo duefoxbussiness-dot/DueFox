@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Filter,
   Pencil,
+  Send,
 } from 'lucide-react';
 import { CurrencyCode, InvoiceStatus, InvoiceWithClient } from '../types';
 
@@ -21,6 +22,7 @@ interface InvoiceTableProps {
   onMarkPaid: (id: string, newStatus: InvoiceStatus) => Promise<void>;
   onEdit: (invoice: InvoiceWithClient) => void;
   onDelete: (id: string) => Promise<void>;
+  onRequestChase: (invoice: InvoiceWithClient) => void;
   onPauseChase: (invoice: InvoiceWithClient) => Promise<void>;
   onRequestResumeChase: (invoice: InvoiceWithClient) => void;
   onOpenAddModal: () => void;
@@ -34,6 +36,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   onMarkPaid,
   onEdit,
   onDelete,
+  onRequestChase,
   onPauseChase,
   onRequestResumeChase,
   onOpenAddModal,
@@ -492,6 +495,18 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                           )}
                           <span>{isCopied ? 'Copied!' : 'Copy Link'}</span>
                         </button>
+
+                        {!isPaid && !isPaused && (
+                          <button
+                            type="button"
+                            onClick={() => onRequestChase(inv)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-white bg-electric hover:bg-[#F4511E] rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
+                            title="Preview and send an invoice reminder"
+                          >
+                            <Send className="w-3.5 h-3.5 shrink-0" />
+                            <span>Chase</span>
+                          </button>
+                        )}
 
                         {/* Pause or resume the automated chase sequence */}
                         {!isPaid && !isPaused && (

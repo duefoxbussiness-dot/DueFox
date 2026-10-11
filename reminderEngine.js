@@ -16,13 +16,19 @@ function requiredEnv(name) {
 }
 
 function getConfiguration() {
+  const gmailAppPassword =
+    (process.env.GMAIL_PASS || process.env.GMAIL_APP_PASSWORD)?.trim();
+  if (!gmailAppPassword) {
+    throw new Error('Missing required environment variable: GMAIL_PASS or GMAIL_APP_PASSWORD');
+  }
+
   return {
     supabaseUrl: requiredEnv('VITE_SUPABASE_URL'),
     supabaseKey:
       process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
       requiredEnv('VITE_SUPABASE_ANON_KEY'),
     gmailUser: requiredEnv('GMAIL_USER'),
-    gmailAppPassword: requiredEnv('GMAIL_APP_PASSWORD'),
+    gmailAppPassword,
   };
 }
 

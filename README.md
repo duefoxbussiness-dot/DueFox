@@ -30,12 +30,16 @@ Run the end-to-end suite:
 
 Configure `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `GMAIL_USER`, and
 `GMAIL_APP_PASSWORD` in `.env` using [.env.example](./.env.example) as a template.
+Optionally set `GEMINI_API_KEY` to generate customized email and WhatsApp
+reminders; if it is missing or Gemini fails, the engine uses its hardcoded
+templates.
 Optionally set `SUPABASE_SERVICE_ROLE_KEY` to let the server-side script bypass
 Supabase row-level security; if it is unset, the script uses the anon key.
-For this email-only test, WhatsApp sending is disabled. The script sends Gmail
-reminders to unpaid invoices due today or earlier: Polite for 0–7 days overdue,
-Firm for 8–29 days, and Strict for 30 or more days. It increments
-`chase_count` and updates `last_chased_at` after the email sends successfully.
+The script sends reminders to unpaid invoices due today or earlier: Polite for
+0–3 days overdue, Firm for 4–9 days, and Urgent/Final Notice for 10 or more
+days. It sends WhatsApp reminders when a WhatsApp session and client phone
+number are available, and increments `chase_count` and updates
+`last_chased_at` after the email sends successfully.
 
 Run it with Node.js 20 or later:
 

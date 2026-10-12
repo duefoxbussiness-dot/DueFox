@@ -42,27 +42,14 @@ jobs:
             throw new Error('WHATSAPP_SESSION_BASE64 must be valid base64.');
           }
 
-          const session = JSON.parse(Buffer.from(encodedSession, 'base64').toString('utf8'));
-          if (!session || Array.isArray(session) || typeof session !== 'object' || !session['creds.json']) {
-            throw new Error('The decoded WhatsApp session must be a JSON object containing creds.json.');
-          }
+          const contents = Buffer.from(encodedSession, 'base64');
+          JSON.parse(contents.toString('utf8'));
 
           const authDirectory = resolve('auth_info_baileys');
           mkdirSync(authDirectory, { recursive: true, mode: 0o700 });
-          for (const [filename, encodedContents] of Object.entries(session)) {
-            if (!/^[A-Za-z0-9._-]+\.json$/.test(filename) || filename === '.' || filename === '..') {
-              throw new Error(`Invalid WhatsApp session filename: ${filename}`);
-            }
-            if (typeof encodedContents !== 'string' || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encodedContents)) {
-              throw new Error(`Invalid base64 session contents for ${filename}.`);
-            }
+          writeFileSync(resolve(authDirectory, 'creds.json'), contents, { mode: 0o600 });
 
-            const contents = Buffer.from(encodedContents, 'base64');
-            JSON.parse(contents.toString('utf8'));
-            writeFileSync(resolve(authDirectory, filename), contents, { mode: 0o600 });
-          }
-
-          console.log(`Restored ${Object.keys(session).length} WhatsApp session files.`);
+          console.log('Restored WhatsApp credentials.');
           NODE
 
       - name: Run reminder engine

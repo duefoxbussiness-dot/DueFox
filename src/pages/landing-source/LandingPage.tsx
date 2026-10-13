@@ -29,6 +29,7 @@ import {
 import { BrandLogo } from './components/BrandLogo';
 import { InteractiveDashboardPreview } from './components/InteractiveDashboardPreview';
 import { PricingPlans } from '../../components/PricingPlans';
+import { supabaseService } from '../../lib/supabase';
 
 interface LandingPageProps {
   onNavigateToDashboard?: () => void;
@@ -130,7 +131,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
   }, [copiedPaymentLink, paymentLinkCopyFailed]);
 
   // Standard redirection handler required by user prompt
-  const handleGoToDashboard = () => {
+  const handleGoToDashboard = async () => {
+    const user = await supabaseService.getUser();
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+
     if (onNavigateToDashboard) {
       onNavigateToDashboard();
     } else {

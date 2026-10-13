@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { isUserActive } from '../lib/subscription';
 
 interface TrialBannerProps {
   subscriptionStatus?: string;
@@ -19,7 +20,14 @@ export function TrialBanner({ subscriptionStatus, trialEndsAt }: TrialBannerProp
     setNow(Date.now());
   }, [trialEndsAt]);
 
-  if (subscriptionStatus !== 'trialing' || !trialEndsAt || dismissed) return null;
+  if (
+    subscriptionStatus !== 'trialing' ||
+    !trialEndsAt ||
+    dismissed ||
+    !isUserActive({ subscription_status: subscriptionStatus, trial_ends_at: trialEndsAt })
+  ) {
+    return null;
+  }
 
   const trialEndTime = new Date(trialEndsAt).getTime();
   if (!Number.isFinite(trialEndTime)) return null;

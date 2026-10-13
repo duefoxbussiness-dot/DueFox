@@ -35,40 +35,58 @@
     <meta name="keywords" content="automated invoice chasing, b2b payment recovery, overdue invoice reminders, freelance invoicing software, stripe razorpay payment automation" />
     <meta name="google-site-verification" content="HYPzsanihD6kYNlsfzn0kQzNsjC3VMLJJqjYqoZCwqs" />
     <link rel="canonical" href="https://www.duefox.co" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/duefox-logo.svg" />
     <meta property="og:title" content="DueFox - Automated B2B Invoice Chasing &amp; Payment Recovery" />
     <meta property="og:description" content="Automate overdue B2B invoice reminders, email &amp; WhatsApp chasing, and custom payment gateways. Recover payments effortlessly with DueFox." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.duefox.co" />
-    <meta property="og:image" content="https://www.duefox.co/duefox-logo.svg" />
+    <meta property="og:image" content="https://www.duefox.co/og-image.png" />
     <meta property="og:image:alt" content="DueFox — automated B2B invoice chasing and payments" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DueFox - Automated B2B Invoice Chasing &amp; Payment Recovery" />
     <meta name="twitter:description" content="Automate overdue B2B invoice reminders, email &amp; WhatsApp chasing, and custom payment gateways. Recover payments effortlessly with DueFox." />
-    <meta name="twitter:image" content="https://www.duefox.co/duefox-logo.svg" />
+    <meta name="twitter:image" content="https://www.duefox.co/og-image.png" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "DueFox",
-        "url": "https://www.duefox.co",
-        "description": "Automate overdue B2B invoice reminders, email and WhatsApp follow-ups, and payment links.",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "offers": [
+        "@graph": [
           {
-            "@type": "Offer",
-            "name": "Pro",
-            "price": "9",
-            "priceCurrency": "USD",
-            "billingDuration": "P1M"
+            "@type": "Organization",
+            "@id": "https://www.duefox.co/#organization",
+            "name": "DueFox",
+            "url": "https://www.duefox.co",
+            "logo": "https://www.duefox.co/logo.png"
           },
           {
-            "@type": "Offer",
-            "name": "Agency",
-            "price": "49",
-            "priceCurrency": "USD",
-            "billingDuration": "P1M"
+            "@type": "SoftwareApplication",
+            "@id": "https://www.duefox.co/#software",
+            "name": "DueFox",
+            "url": "https://www.duefox.co",
+            "logo": "https://www.duefox.co/logo.png",
+            "image": "https://www.duefox.co/og-image.png",
+            "publisher": { "@id": "https://www.duefox.co/#organization" },
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "All",
+            "description": "DueFox.co is an automated B2B invoice-chasing SaaS platform that automates payment reminders via Email and WhatsApp with progressive tone escalation, helping freelancers and agencies recover overdue payments effortlessly.",
+            "offers": {
+              "@type": "AggregateOffer",
+              "priceCurrency": "USD",
+              "lowPrice": "9",
+              "highPrice": "49",
+              "offerCount": "2"
+            },
+            "featureList": [
+              "Automated Invoice Chasing",
+              "WhatsApp & Email Payment Reminders",
+              "Progressive Reminder Escalation",
+              "No Credit Card 7-Day Free Trial",
+              "Custom Payment Gateway Integration"
+            ]
           }
         ]
       }

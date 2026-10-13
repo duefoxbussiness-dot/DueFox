@@ -47,37 +47,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
 
   const workflowSteps = [
     {
-      context: 'Create Account & Workspace Access',
-      title: '1. Create Account & Instant Dashboard Access',
-      description: 'Sign up in under 30 seconds using your business email. Instant database workspace ready without lengthy onboarding forms or upfront payment setup.',
+      context: 'Create your free account',
+      title: 'Create your free account',
+      description: 'Sign up in seconds using your business email or Google Sign-In. No credit card required to get started.',
       image: '/screenshots/login%20-1.png',
       imageAlt: 'DueFox account sign-up screen',
     },
     {
-      context: 'Configure Business Profile & Sender Branding',
-      title: '2. Configure Business Profile & Sender Branding',
-      description: 'Enter your Company Name, Representative/Sender Name, and Business Email. These branding details auto-populate all outgoing Email & WhatsApp messages so clients immediately recognize who is following up.',
+      context: 'Add your business details',
+      title: 'Add your business details',
+      description: 'Enter your business name, logo, and preferred payment methods (Stripe, Razorpay, Wise, or Bank Transfer). DueFox attaches these details to your client reminders.',
       image: '/screenshots/profile%20-3.png',
       imageAlt: 'DueFox business profile settings screen',
     },
     {
-      context: 'Connect Payment & Wire Gateway Details',
-      title: '3. Connect Global Payment & Wire Gateway Details',
-      description: 'Add your Stripe payment link, Razorpay/UPI ID, or Bank Wire details. DueFox automatically attaches instant 1-click settlement options directly inside reminder emails and WhatsApp notifications.',
+      context: 'Add your pending invoices',
+      title: 'Add your pending invoices',
+      description: "Upload or type in your client's name, phone number, email address, overdue amount, and due date. You can also paste your existing payment link.",
       image: '/screenshots/payment%20-4.png',
       imageAlt: 'DueFox global payment methods settings screen',
     },
     {
-      context: 'Add Invoice & Set Reminder Cadence',
-      title: '4. Input Invoice Details & Set Multi-Channel Cadence',
-      description: 'Enter invoice number, amount, due date, and client contact information (Email & WhatsApp). Select your preferred chasing tone (Gentle, Standard, or Assertive) to set up automated reminder intervals.',
+      context: 'Select your automated follow-up schedule',
+      title: 'Select your automated follow-up schedule',
+      description: 'Choose how gently or firmly DueFox should chase your payment. Pick from Gentle, Standard, or Assertive schedules for automated Email & WhatsApp reminders.',
       image: '/screenshots/add%20invoice%202%20-5a.png',
       imageAlt: 'DueFox invoice form with client contact details and reminder schedule',
     },
     {
-      context: 'Auto-Chase Dashboard Milestone',
-      title: '5. Automated Multi-Channel Recovery Running Daily',
-      description: 'Sit back and focus on your business. DueFox continuously tracks past-due balances, triggers scheduled Email & WhatsApp reminders, and updates payment statuses instantly upon settlement.',
+      context: 'Let DueFox recover your payments automatically',
+      title: 'Let DueFox recover your payments automatically',
+      description: 'Sit back and let DueFox send timely, friendly reminders to your clients. As soon as a client pays via the payment link, the status updates and follow-ups automatically stop!',
       image: '/screenshots/dashboard%20final-%206.png',
       imageAlt: 'DueFox dashboard showing invoice recovery and active chase statuses',
       badge: '🎉 Congrats! Your Chasing Automation is Now LIVE 🚀',
@@ -151,24 +151,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
 
   const faqs = [
     {
-      q: 'Will automated chasing damage my client relationships?',
-      a: 'Not at all. DueFox uses humanized, polite-to-firm escalation templates that sound like a high-touch agency account manager. You can choose between Gentle (courteous weekly reminder), Standard (Days 3, 7, 14, 21), or Assertive (with structured legal escalation notice). Most late payments happen due to administrative oversight, not bad intent.',
+      q: 'Will automatic reminders hurt my client relationships?',
+      a: 'DueFox sends clear, polite reminders. You can choose a gentle, standard, or firm reminder schedule. Many invoices are paid late because clients forget, not because they refuse to pay.',
     },
     {
-      q: 'How does the WhatsApp escalation channel work?',
-      a: 'DueFox integrates with WhatsApp Business API to deliver concise, read-receipt verified payment links directly to your client’s mobile device. With a 98% open rate compared to 20% for email, WhatsApp messages eliminate the "I missed your invoice email" excuse.',
+      q: 'How do WhatsApp reminders work?',
+      a: 'DueFox can send a WhatsApp reminder with a payment link to your client’s phone number.',
     },
     {
-      q: 'Can I connect my existing Stripe, Razorpay, or bank wire details?',
-      a: 'Yes! DueFox seamlessly supports direct payment gateway links from Stripe, Razorpay, Wise, and PayPal. For corporate invoices above $1,000, DueFox automatically formats and attaches your high-ticket Bank Wire & SWIFT remittance instructions.',
+      q: 'Can I add my payment link or bank details?',
+      a: 'Yes. Add a payment link or bank details and DueFox can include them in your reminders.',
     },
     {
-      q: 'What happens when a client settles their balance?',
-      a: 'The moment payment is detected or you click "Settled", DueFox instantly pauses all future chase sequences for that invoice and dispatches a polite payment confirmation receipt to both parties.',
+      q: 'What happens when an invoice is paid?',
+      a: 'Mark the invoice as paid in DueFox to stop its future reminders.',
     },
     {
-      q: 'How long does onboarding take?',
-      a: 'Under 2 minutes. Add your agency name, connect your payment link or bank details, enter or import your pending client invoices, and DueFox handles the entire follow-up cadence automatically.',
+      q: 'How long does setup take?',
+      a: 'Add your business details, payment information, and invoices. Then DueFox can send reminders for you.',
     },
   ];
 
@@ -292,7 +292,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-[#FF5722]/30 text-xs font-bold text-[#FF5722] shadow-2xs"
           >
             <span className="w-2 h-2 rounded-full bg-[#FF5722] animate-pulse" />
-            <span>Automated Invoice Recovery for Freelancers &amp; Agencies</span>
+            <span>Automatic invoice reminders for freelancers and agencies</span>
           </motion.div>
 
           {/* Bold Headline with Motion */}
@@ -302,10 +302,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
             className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]"
           >
-            Stop Chasing Unpaid Invoices Manually.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5722] via-[#F4511E] to-amber-600">
-              Get Paid 3x Faster.
-            </span>
+            Automatically Follow Up on Pending Invoices and Get Paid on Time.
           </motion.h1>
 
           {/* Subheadline */}
@@ -315,7 +312,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
             className="text-base sm:text-lg lg:text-xl text-[#64748B] max-w-3xl mx-auto font-normal leading-relaxed"
           >
-            Automated invoice tracking, multi-channel escalation (Email &amp; WhatsApp), and instant client payment links for freelancers &amp; agencies.
+            DueFox sends automatic Email &amp; WhatsApp payment reminders to your clients for pending invoices with a direct payment link so you get paid faster without manual chasing.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -385,10 +382,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Trusted by 1,400+ Independent Studios, Contractors &amp; Agencies
+              Trusted by 1,400+ studios, contractors, and agencies
             </p>
             <p className="text-sm font-semibold text-slate-800 mt-1">
-              Over <span className="text-[#FF5722] font-black">$4.2M+</span> in delinquent agency invoices recovered on autopilot
+              Over <span className="text-[#FF5722] font-black">$4.2M+</span> in unpaid agency invoices recovered automatically
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-8 text-slate-400 font-black tracking-tight text-lg">
@@ -418,7 +415,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             How DueFox Works (In 5 Simple Steps)
           </h2>
           <p className="text-sm sm:text-base text-[#64748B]">
-            Follow each step to set up your workspace and automate invoice recovery.
+            Set up DueFox in five steps and let it remind clients about unpaid invoices.
           </p>
         </motion.div>
 
@@ -434,89 +431,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 gap-3 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center"
+              className="flex flex-col"
             >
-              <div className="flex flex-col gap-2 py-2 md:py-3 lg:col-span-5">
-                <div className="flex flex-wrap gap-1.5" aria-label="Choose a workflow step">
-                  {workflowSteps.map((step, index) => (
-                    <button
-                      key={step.title}
-                      type="button"
-                      onClick={() => navigateToStep(index)}
-                      aria-label={`Show step ${index + 1}: ${step.context}`}
-                      aria-pressed={activeStep === index}
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
-                        activeStep === index
-                          ? 'border-[#FF5722] bg-[#FF5722] text-white shadow-sm'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:bg-orange-50 hover:text-slate-900'
-                      }`}
-                    >
-                      Step {index + 1}
-                    </button>
-                  ))}
-                </div>
-
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  Step {activeStep + 1} of {workflowSteps.length}: {workflowSteps[activeStep].context}
-                </h3>
-
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm">
-                  {workflowSteps[activeStep].badge && (
-                    <div className="mb-2 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
-                      {workflowSteps[activeStep].badge}
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    <h4 className="text-lg font-bold text-slate-900">
-                      {workflowSteps[activeStep].title}
-                    </h4>
-                    <p className="text-sm leading-snug text-slate-600">
-                      {workflowSteps[activeStep].description}
-                    </p>
-                    {activeStep === workflowSteps.length - 1 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] leading-tight font-semibold text-emerald-700">
-                          ✓ Daily Multi-Channel Follow-ups Active
-                        </span>
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] leading-tight font-semibold text-emerald-700">
-                          ✓ Automatic Escalation &amp; Audit Log Enabled
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => navigateToStep((activeStep - 1 + workflowSteps.length) % workflowSteps.length)}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 sm:flex-none"
-                  >
-                    <ArrowRight className="h-4 w-4 rotate-180" />
-                    Previous Step
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (activeStep === workflowSteps.length - 1) {
-                        window.location.href = '/login';
-                        return;
-                      }
-                      navigateToStep(activeStep + 1);
-                    }}
-                    className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm text-white transition-colors sm:flex-none ${
-                      activeStep === workflowSteps.length - 1
-                        ? 'bg-orange-600 hover:bg-orange-700 font-bold shadow-lg shadow-orange-500/20 animate-pulse'
-                        : 'bg-[#FF5722] hover:bg-[#E64A19] font-semibold shadow-sm'
-                    }`}
-                  >
-                    {activeStep === workflowSteps.length - 1 ? 'Start Invoice Chasing Now 🚀' : 'Next Step'}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mx-auto w-full max-w-5xl rounded-2xl border border-slate-200/80 shadow-xl overflow-hidden bg-white p-2 lg:col-span-7">
+              <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
                 <div className="flex items-center gap-1.5 rounded-t-xl border-b border-slate-100 bg-slate-50 px-3 py-2.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -531,8 +448,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                   loading="lazy"
                   decoding="async"
                   style={{ imageRendering: '-webkit-optimize-contrast' }}
-                  className="w-full h-auto max-h-[380px] object-contain mx-auto transition-all duration-300 crisp-edges rounded-b-xl bg-slate-100"
+                  className="mx-auto h-auto max-h-[480px] w-full object-contain transition-all duration-300"
                 />
+              </div>
+
+              <div className="mx-auto mt-6 flex w-full max-w-2xl flex-col items-center gap-4 text-center">
+                <span className="inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
+                  Step {activeStep + 1} of {workflowSteps.length}
+                </span>
+                {workflowSteps[activeStep].badge && (
+                  <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                    {workflowSteps[activeStep].badge}
+                  </div>
+                )}
+                <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
+                  {workflowSteps[activeStep].title}
+                </h3>
+                <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+                  {workflowSteps[activeStep].description}
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => navigateToStep((activeStep - 1 + workflowSteps.length) % workflowSteps.length)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    <ArrowRight className="h-4 w-4 rotate-180" />
+                    Previous Step
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (activeStep === workflowSteps.length - 1) {
+                        window.location.href = '/login';
+                        return;
+                      }
+                      navigateToStep(activeStep + 1);
+                    }}
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm text-white transition-colors ${
+                      activeStep === workflowSteps.length - 1
+                        ? 'bg-orange-600 hover:bg-orange-700 font-bold shadow-lg shadow-orange-500/20 animate-pulse'
+                        : 'bg-[#FF5722] hover:bg-[#E64A19] font-semibold shadow-sm'
+                    }`}
+                  >
+                    {activeStep === workflowSteps.length - 1 ? 'Start Invoice Chasing Now 🚀' : 'Next Step'}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -553,10 +515,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               BUILT FOR CASH-FLOW CLARITY
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Enterprise Collections Power, Tailored for Lean Teams
+              Simple tools to help you get paid
             </h2>
             <p className="text-sm sm:text-base text-[#64748B]">
-              Everything you need to eliminate delinquent balances and accelerate your collection turnaround.
+              Track unpaid invoices, send reminders, and help clients pay you faster.
             </p>
           </motion.div>
 
@@ -574,17 +536,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-rose-200 bg-gradient-to-br from-rose-100 to-orange-50 text-rose-600">
                     <AlertTriangle className="h-5 w-5" />
                   </div>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">SMART ESCALATION</span>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">AUTOMATIC REMINDERS</span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Overdue Aging Matrix &amp; Smart Escalation</h3>
+                <h3 className="text-xl font-bold text-slate-900">Reminders for overdue invoices</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  Automatically triages outstanding balances. System transitions from polite reminders to authoritative notices as invoices age past due dates.
+                  DueFox tracks unpaid invoices and sends reminders as they become overdue.
                 </p>
 
                 <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
                   <div className="mb-4 flex items-center justify-between text-xs font-semibold text-slate-500">
                     <span>REMINDER TIMELINE</span>
-                    <span>INVOICE AGE</span>
+                    <span>DAYS OVERDUE</span>
                   </div>
                   <div className="mb-4 flex h-2 overflow-hidden rounded-full bg-slate-100">
                     <span className="w-1/3 bg-gradient-to-r from-emerald-400 to-yellow-400" />
@@ -605,13 +567,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                     <div className="space-y-2">
                       <span className="block text-[11px] font-bold text-slate-700">30+ Days</span>
                       <span className="inline-flex rounded-full bg-rose-50 px-2 py-1 text-[10px] leading-tight font-semibold text-rose-700">Critical Notice</span>
-                      <p className="text-[10px] leading-tight text-slate-500">Legal Escalation &amp; Wire Notice</p>
+                      <p className="text-[10px] leading-tight text-slate-500">Final reminder</p>
                     </div>
                   </div>
                 </div>
                 <div className="mt-auto flex flex-wrap gap-2 pt-5">
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">✓ Dynamic Tone Shifting</span>
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">✓ Custom Due Date Triggers</span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">✓ Choose a reminder tone</span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">✓ Set reminder dates</span>
                 </div>
               </div>
             </motion.div>
@@ -629,11 +591,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-orange-200 bg-orange-50 text-orange-600">
                     <Copy className="h-5 w-5" />
                   </div>
-                  <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">1-CLICK CHECKOUT</span>
+                  <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">EASY PAYMENTS</span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Frictionless 1-Click Payment Settlement</h3>
+                <h3 className="text-xl font-bold text-slate-900">Make it easy for clients to pay</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  Generates isolated, distraction-free payment pages. Copy checkout links directly to clipboard or trigger instant multi-channel dispatches.
+                  Share a direct payment link with your clients by email or WhatsApp.
                 </p>
 
                 <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
@@ -688,11 +650,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600">
                     <DollarSign className="h-5 w-5" />
                   </div>
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">GLOBAL ENGINE</span>
+                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">MULTIPLE CURRENCIES</span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Multi-Currency Support &amp; Automated FX Tracking</h3>
+                <h3 className="text-xl font-bold text-slate-900">Use different currencies</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  Seamlessly issue and recover invoices across global markets with native currency calculations and real-time exchange rates.
+                  Create and track invoices in USD, EUR, GBP, or INR.
                 </p>
 
                 <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
@@ -760,9 +722,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                     LIVE AUDIT
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Real-Time Audit Trail &amp; Read Receipts</h3>
+                <h3 className="text-xl font-bold text-slate-900">See reminder and payment activity</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  Immutable event log tracking every message dispatch, email open, and payment link click so clients can never claim missed notices.
+                  Review when reminders are sent and when clients open their payment link.
                 </p>
 
                 <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
@@ -813,20 +775,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-7 space-y-5">
               <span className="text-xs font-bold tracking-widest text-[#FF5722] uppercase">
-                CALCULATE YOUR UNLOCKED CASH
+                ESTIMATE YOUR CASH FLOW
               </span>
               <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                How Much Cash Is Trapped In Your Late Invoice Queue?
+                How much money are you waiting to collect?
               </h2>
               <p className="text-sm text-[#64748B] leading-relaxed">
-                The average creative agency waits 42+ days for invoices to clear. With DueFox’s multi-channel automated cadence, average DSO (Days Sales Outstanding) drops to 11 days.
+                Adjust the amount below to see an example of how much you could collect sooner and how much time you could save.
               </p>
 
               {/* Slider */}
               <div className="pt-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Average Monthly Outstanding Invoices
+                    Unpaid invoices each month
                   </label>
                   <motion.span
                     key={calculatorInvoiceAmount}
@@ -861,7 +823,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             >
               <div className="space-y-1">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Estimated Cash Recovered in &lt; 14 Days
+                  Example amount collected sooner
                 </span>
                 <div className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
                   ${estimatedRecovered.toLocaleString()}
@@ -870,14 +832,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
 
               <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200">
                 <div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">DSO Reduction</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Time to get paid</span>
                   <div className="text-lg font-black text-emerald-600 mt-0.5">42d → 11d</div>
-                  <span className="text-[10px] text-slate-500">74% faster collection</span>
+                  <span className="text-[10px] text-slate-500">Example only</span>
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Admin Time Saved</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Time saved each month</span>
                   <div className="text-lg font-black text-[#FF5722] mt-0.5">{hoursSaved} hrs/mo</div>
-                  <span className="text-[10px] text-slate-500">Zero awkward emails</span>
+                  <span className="text-[10px] text-slate-500">Less time spent chasing</span>
                 </div>
               </div>
 
@@ -887,7 +849,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
                 onClick={handleGoToDashboard}
                 className="w-full py-3.5 rounded-xl bg-[#FF5722] hover:bg-[#F4511E] text-white font-bold text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Claim Your Recovered Cash</span>
+                <span>Start your free trial</span>
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
             </motion.div>
@@ -916,7 +878,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               Frequently Asked Questions
             </h2>
             <p className="text-sm text-[#64748B]">
-              Everything you need to know about automated invoice chasing with dueFox.co.
+              Simple answers about DueFox and invoice reminders.
             </p>
           </motion.div>
 
@@ -981,10 +943,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
 
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              Ready to Eliminate Unpaid Invoice Anxiety For Good?
+              Ready to spend less time chasing unpaid invoices?
             </h2>
             <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              Join 1,400+ freelancers and agency owners collecting on time with automated dignity. Get full access to automated WhatsApp/email chasing and custom gateway links for 7 days.
+              Join freelancers and agencies who use DueFox to remind clients about unpaid invoices. Try automatic email and WhatsApp reminders for 7 days.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -1002,7 +964,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-2 text-xs font-medium text-slate-300">
               <span>✓ 7-day free trial</span>
               <span>✓ No credit card required</span>
-              <span>✓ Instant n8n/Supabase setup</span>
+              <span>✓ Quick setup</span>
             </div>
           </div>
         </motion.div>
@@ -1017,14 +979,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               <span className="text-2xl font-black tracking-tight text-white">duefox<span className="text-[#FF5722]">.co</span></span>
             </a>
             <p className="max-w-sm text-sm leading-relaxed text-slate-400">
-              Automated B2B Invoice Chasing &amp; Payment Recovery for Modern Agencies and Freelancers.
+              Automatic payment reminders for freelancers and agencies.
             </p>
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              System Status: All Automation Systems Operational
+              All systems are working
             </div>
           </div>
 
@@ -1034,8 +996,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
               <li><a href="#how-it-works" className="transition-colors hover:text-white">How It Works</a></li>
               <li><a href="#features" className="transition-colors hover:text-white">Core Features</a></li>
               <li><a href="#pricing" className="transition-colors hover:text-white">Pricing Plans</a></li>
-              <li><a href="#features" className="transition-colors hover:text-white">Integrations (n8n &amp; Supabase)</a></li>
-              <li><a href="#how-it-works" className="transition-colors hover:text-white">Chasing Cadence Engine</a></li>
+              <li><a href="#features" className="transition-colors hover:text-white">Payment options</a></li>
+              <li><a href="#how-it-works" className="transition-colors hover:text-white">Reminder schedule</a></li>
             </ul>
           </nav>
 
@@ -1064,7 +1026,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToDashboard 
 
         <div className="border-t border-slate-800">
           <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-5 text-xs md:flex-row md:items-center md:justify-between md:px-12">
-            <p className="text-slate-500">© 2026 duefox.co — Built for Cash-Flow Clarity. All rights reserved.</p>
+            <p className="text-slate-500">© 2026 duefox.co — Simple invoice reminders. All rights reserved.</p>
             <div className="flex flex-wrap items-center gap-2">
               <a href="mailto:support@duefox.co" className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-3 py-2 text-slate-400 transition-colors hover:border-slate-600 hover:text-white">
                 <Mail className="h-3.5 w-3.5" /> Email

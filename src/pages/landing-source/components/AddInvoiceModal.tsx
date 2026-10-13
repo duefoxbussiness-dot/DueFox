@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, FileText, User, Mail, Phone, Building, DollarSign, Calendar, Link2, Sparkles, Check } from 'lucide-react';
+import { X, FileText, User, Mail, Building, DollarSign, Calendar, Link2, Sparkles, Check } from 'lucide-react';
+import { PhoneInput } from '../../../components/PhoneInput';
 import { Currency, ChaseSchedule, Invoice } from '../types';
 
 interface AddInvoiceModalProps {
@@ -144,18 +145,9 @@ export const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Phone (for SMS/WhatsApp Chasing)
+                  Phone (for SMS/WhatsApp reminders)
                 </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="+1 (555) 000-0000 / +91 98..."
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden focus:border-[#FF5722] transition-colors"
-                  />
-                </div>
+                <PhoneInput placeholder="Enter phone number" value={phone} onChange={setPhone} />
               </div>
 
               <div>

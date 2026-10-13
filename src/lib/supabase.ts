@@ -92,6 +92,7 @@ class SupabaseService {
           auth: {
             persistSession: true,
             autoRefreshToken: true,
+            detectSessionInUrl: true,
           },
         });
         this.config = {
@@ -268,11 +269,16 @@ class SupabaseService {
     try {
       const { error } = await this.client.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/dashboard` },
+        options: { redirectTo: new URL('/dashboard', window.location.origin).toString() },
       });
 
       if (error) {
         console.error('[Supabase] Google sign-in failed:', error);
+        if (/unsupported provider|provider.*not enabled|not enabled.*provider/i.test(error.message)) {
+          return {
+            error: 'Google sign-in is not available yet. Please ask your Supabase admin to enable Google in Authentication → Sign In / Providers. You can still sign in with your email and password.',
+          };
+        }
         return { error: error.message };
       }
 

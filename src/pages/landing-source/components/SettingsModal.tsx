@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Building2, CreditCard, Sparkles, Check, Crown, ShieldAlert, Landmark, CheckCircle2 } from 'lucide-react';
 import { BusinessProfile, Currency } from '../types';
 import { PricingPlans } from '../../../components/PricingPlans';
+import { PhoneInput } from '../../../components/PhoneInput';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -149,12 +150,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Business Phone Number</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. +1 555 000 0000"
+                  <PhoneInput
+                    placeholder="Enter phone number"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden focus:border-[#FF5722]"
+                    onChange={(phone) => setFormData({ ...formData, phone })}
                   />
                 </div>
               </div>

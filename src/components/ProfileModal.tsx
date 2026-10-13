@@ -4,7 +4,6 @@ import {
   Building2,
   User,
   Mail,
-  Phone,
   MapPin,
   FileCheck2,
   Check,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { UserProfile, CurrencyCode, PlanTier } from '../types';
 import { PricingPlans } from './PricingPlans';
+import { PhoneInput } from './PhoneInput';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -319,16 +319,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Business Phone Number
                   </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      placeholder="e.g. +1 555 000 0000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
-                    />
-                  </div>
+                  <PhoneInput placeholder="Enter phone number" value={phone} onChange={setPhone} />
                 </div>
               </div>
 

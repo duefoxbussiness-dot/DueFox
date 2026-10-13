@@ -1,0 +1,17 @@
+# DueFox - Automated B2B Invoice Chasing & Payment Recovery
+
+> DueFox.co is an automated invoice-chasing SaaS platform for freelancers, solopreneurs, and agencies.
+
+## Key Features
+- Automated payment reminders via Email and WhatsApp.
+- Progressive tone escalation (Polite nudges to urgent escalations).
+- Custom payment options (UPI, Bank details, Checkout links).
+- 7-day free trial with No Credit Card required.
+
+## Pricing Tiers
+- Pro Plan: $9/month
+- Agency Plan: $49/month
+
+## Technical Details
+- Official Website: https://www.duefox.co
+- Contact: duefoxbussiness@gmail.com

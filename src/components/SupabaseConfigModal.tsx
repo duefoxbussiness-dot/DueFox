@@ -254,7 +254,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
               </div>
 
               <p className="text-[11px] text-slate-500">
-                Tip: Paste this script into your Supabase Dashboard &gt; SQL Editor and click "Run". It creates tables, adds foreign keys, sets permissive RLS policies for testing, and enables realtime replication.
+                Tip: Paste this script into your Supabase Dashboard &gt; SQL Editor and click "Run". It creates the tables, enables owner-only RLS policies, adds a limited public invoice lookup for payment pages, and enables realtime updates.
               </p>
             </div>
           )}
@@ -282,6 +282,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
   email TEXT NOT NULL,
   phone TEXT,
   company TEXT,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -300,10 +301,13 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   chase_schedule TEXT DEFAULT 'standard',
   resumed_at TIMESTAMPTZ,
   notes TEXT,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS resumed_at TIMESTAMPTZ;
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
 ALTER TABLE public.invoices ADD CONSTRAINT invoices_status_check
   CHECK (status IN ('pending', 'escalated', 'paid', 'paused'));
@@ -405,14 +409,101 @@ CREATE TRIGGER on_auth_user_created_profile
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_auth_user();
 
--- 4. Enable Row Level Security (RLS) with open prototype policies
+-- 4. Enable Row Level Security (RLS)
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read/write on clients" ON public.clients FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/write on invoices" ON public.invoices FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/write on profiles" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public read/write on clients" ON public.clients;
+DROP POLICY IF EXISTS "Allow public read/write on invoices" ON public.invoices;
+DROP POLICY IF EXISTS "Allow public read/write on profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can manage their profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can manage their clients" ON public.clients;
+DROP POLICY IF EXISTS "Users can manage their invoices" ON public.invoices;
+
+CREATE POLICY "Users can manage their profile" ON public.profiles
+  FOR ALL TO authenticated
+  USING (id = auth.uid()::TEXT)
+  WITH CHECK (id = auth.uid()::TEXT);
+CREATE POLICY "Users can manage their clients" ON public.clients
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can manage their invoices" ON public.invoices
+  FOR ALL TO authenticated
+  USING (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.clients AS client
+      WHERE client.id = client_id AND client.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.clients AS client
+      WHERE client.id = client_id AND client.user_id = auth.uid()
+    )
+  );
+
+CREATE OR REPLACE FUNCTION public.get_public_invoice(p_invoice_id TEXT)
+RETURNS JSONB
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT jsonb_build_object(
+  'invoice', jsonb_build_object(
+    'id', invoice.id,
+    'client_id', invoice.client_id,
+    'invoice_number', invoice.invoice_number,
+    'amount', invoice.amount,
+    'currency', invoice.currency,
+    'due_date', invoice.due_date,
+    'status', invoice.status,
+    'payment_link', invoice.payment_link,
+    'chase_count', invoice.chase_count,
+    'last_chased_at', invoice.last_chased_at,
+    'chase_schedule', invoice.chase_schedule,
+    'resumed_at', invoice.resumed_at,
+    'notes', invoice.notes,
+    'created_at', invoice.created_at,
+    'clients', CASE WHEN client.id IS NULL THEN NULL ELSE jsonb_build_object(
+      'id', client.id,
+      'name', client.name,
+      'email', client.email,
+      'phone', client.phone,
+      'company', client.company,
+      'created_at', client.created_at
+    ) END
+  ),
+    'profile', CASE WHEN profile.id IS NULL THEN NULL ELSE jsonb_build_object(
+      'id', profile.id,
+      'representative_name', profile.representative_name,
+      'company_name', profile.company_name,
+      'business_email', profile.business_email,
+      'phone', profile.phone,
+      'currency', profile.currency,
+      'business_address', profile.business_address,
+      'tax_id', profile.tax_id,
+      'payment_link', profile.payment_link,
+      'upi_id', profile.upi_id,
+      'bank_account_holder', profile.bank_account_holder,
+      'bank_name', profile.bank_name,
+      'bank_account_number', profile.bank_account_number,
+      'bank_swift_code', profile.bank_swift_code,
+      'bank_routing_code', profile.bank_routing_code
+    ) END
+  )
+  FROM public.invoices AS invoice
+  LEFT JOIN public.clients AS client ON client.id::TEXT = invoice.client_id::TEXT
+  LEFT JOIN public.profiles AS profile ON profile.id::TEXT = invoice.user_id::TEXT
+  WHERE invoice.id::TEXT = p_invoice_id OR invoice.invoice_number = p_invoice_id
+  ORDER BY CASE WHEN invoice.id::TEXT = p_invoice_id THEN 0 ELSE 1 END
+  LIMIT 1;
+$$;
+REVOKE ALL ON FUNCTION public.get_public_invoice(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_public_invoice(TEXT) TO anon, authenticated;
 
 -- 5. Enable Realtime Replication
 ALTER PUBLICATION supabase_realtime ADD TABLE public.clients;

@@ -617,68 +617,54 @@ class SupabaseService {
 
     if (publicClient) {
       try {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invoiceId);
-        let row = null;
+        const { data, error } = await publicClient.rpc('get_public_invoice', {
+          p_invoice_id: invoiceId,
+        });
+        if (error) throw error;
 
-        if (isUuid) {
-          const idResult = await publicClient
-            .from('invoices')
-            .select('*')
-            .eq('id', invoiceId)
-            .maybeSingle();
-          if (idResult.error) throw idResult.error;
-          row = idResult.data;
-        }
-
-        if (!row) {
-          const invoiceNumberResult = await publicClient
-            .from('invoices')
-            .select('*')
-            .eq('invoice_number', invoiceId)
-            .maybeSingle();
-          if (invoiceNumberResult.error) throw invoiceNumberResult.error;
-          row = invoiceNumberResult.data;
-        }
-
+        const result = data as {
+          invoice?: Record<string, unknown>;
+          profile?: {
+            id?: string;
+            representative_name?: string | null;
+            company_name?: string | null;
+            business_email?: string | null;
+            phone?: string | null;
+            currency?: string | null;
+            business_address?: string | null;
+            tax_id?: string | null;
+            payment_link?: string | null;
+            upi_id?: string | null;
+            bank_account_holder?: string | null;
+            bank_name?: string | null;
+            bank_account_number?: string | null;
+            bank_swift_code?: string | null;
+            bank_routing_code?: string | null;
+          } | null;
+        } | null;
+        const row = result?.invoice;
         if (row) {
-          const { data: clientRecord, error: clientError } = await publicClient
-            .from('clients')
-            .select('*')
-            .eq('id', row.client_id)
-            .maybeSingle();
-          if (clientError) throw clientError;
-
-          const invoice = this.mapSupabaseInvoiceRows([{ ...row, clients: clientRecord }])[0];
+          const invoice = this.mapSupabaseInvoiceRows([row])[0];
           let profile: UserProfile | null = null;
-          if (invoice.user_id) {
-            const { data: profileData, error: profileError } = await publicClient
-              .from('profiles')
-              .select('*')
-              .eq('id', invoice.user_id)
-              .maybeSingle();
-            if (profileError) throw profileError;
-            if (profileData) {
-              profile = {
-                id: profileData.id,
-                full_name: profileData.representative_name || '',
-                company_name: profileData.company_name || '',
-                business_email: profileData.business_email || '',
-                phone: profileData.phone || '',
-                default_currency: (profileData.currency as CurrencyCode) || 'USD',
-                company_address: profileData.business_address || '',
-                tax_id: profileData.tax_id || '',
-                payment_gateway_url: profileData.payment_link || '',
-                upi_id: profileData.upi_id || '',
-                bank_holder_name: profileData.bank_account_holder || '',
-                bank_name: profileData.bank_name || '',
-                bank_account_number: profileData.bank_account_number || '',
-                bank_swift_bic: profileData.bank_swift_code || '',
-                bank_routing_wise: profileData.bank_routing_code || '',
-                plan: (profileData.plan as PlanTier) || 'free',
-                plan_status: profileData.plan_status || 'Active',
-                updated_at: profileData.updated_at,
-              };
-            }
+          const profileData = result?.profile;
+          if (profileData) {
+            profile = {
+              id: profileData.id || '',
+              full_name: profileData.representative_name || '',
+              company_name: profileData.company_name || '',
+              business_email: profileData.business_email || '',
+              phone: profileData.phone || '',
+              default_currency: (profileData.currency as CurrencyCode) || 'USD',
+              company_address: profileData.business_address || '',
+              tax_id: profileData.tax_id || '',
+              payment_gateway_url: profileData.payment_link || '',
+              upi_id: profileData.upi_id || '',
+              bank_holder_name: profileData.bank_account_holder || '',
+              bank_name: profileData.bank_name || '',
+              bank_account_number: profileData.bank_account_number || '',
+              bank_swift_bic: profileData.bank_swift_code || '',
+              bank_routing_wise: profileData.bank_routing_code || '',
+            };
           }
           return { invoice, profile };
         }
@@ -1584,17 +1570,104 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
--- 6. Access Policies for Authenticated & Public Access
-CREATE POLICY "Allow authenticated user profile" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read clients" ON public.clients FOR SELECT USING (true);
-CREATE POLICY "Allow public insert clients" ON public.clients FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update clients" ON public.clients FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete clients" ON public.clients FOR DELETE USING (true);
+-- 6. Restrict dashboard data to its authenticated owner
+DROP POLICY IF EXISTS "Allow authenticated user profile" ON public.profiles;
+DROP POLICY IF EXISTS "Allow public read clients" ON public.clients;
+DROP POLICY IF EXISTS "Allow public insert clients" ON public.clients;
+DROP POLICY IF EXISTS "Allow public update clients" ON public.clients;
+DROP POLICY IF EXISTS "Allow public delete clients" ON public.clients;
+DROP POLICY IF EXISTS "Allow public read invoices" ON public.invoices;
+DROP POLICY IF EXISTS "Allow public insert invoices" ON public.invoices;
+DROP POLICY IF EXISTS "Allow public update invoices" ON public.invoices;
+DROP POLICY IF EXISTS "Allow public delete invoices" ON public.invoices;
+DROP POLICY IF EXISTS "Users can manage their profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can manage their clients" ON public.clients;
+DROP POLICY IF EXISTS "Users can manage their invoices" ON public.invoices;
 
-CREATE POLICY "Allow public read invoices" ON public.invoices FOR SELECT USING (true);
-CREATE POLICY "Allow public insert invoices" ON public.invoices FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update invoices" ON public.invoices FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete invoices" ON public.invoices FOR DELETE USING (true);
+CREATE POLICY "Users can manage their profile" ON public.profiles
+  FOR ALL TO authenticated
+  USING (id = auth.uid())
+  WITH CHECK (id = auth.uid());
+CREATE POLICY "Users can manage their clients" ON public.clients
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can manage their invoices" ON public.invoices
+  FOR ALL TO authenticated
+  USING (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.clients AS client
+      WHERE client.id = client_id AND client.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.clients AS client
+      WHERE client.id = client_id AND client.user_id = auth.uid()
+    )
+  );
+
+-- Public payment pages receive only the single invoice and payment details requested.
+CREATE OR REPLACE FUNCTION public.get_public_invoice(p_invoice_id TEXT)
+RETURNS JSONB
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT jsonb_build_object(
+  'invoice', jsonb_build_object(
+    'id', invoice.id,
+    'client_id', invoice.client_id,
+    'invoice_number', invoice.invoice_number,
+    'amount', invoice.amount,
+    'currency', invoice.currency,
+    'due_date', invoice.due_date,
+    'status', invoice.status,
+    'payment_link', invoice.payment_link,
+    'chase_count', invoice.chase_count,
+    'last_chased_at', invoice.last_chased_at,
+    'chase_schedule', invoice.chase_schedule,
+    'resumed_at', invoice.resumed_at,
+    'notes', invoice.notes,
+    'created_at', invoice.created_at,
+    'clients', CASE WHEN client.id IS NULL THEN NULL ELSE jsonb_build_object(
+      'id', client.id,
+      'name', client.name,
+      'email', client.email,
+      'phone', client.phone,
+      'company', client.company,
+      'created_at', client.created_at
+    ) END
+  ),
+    'profile', CASE WHEN profile.id IS NULL THEN NULL ELSE jsonb_build_object(
+      'id', profile.id,
+      'representative_name', profile.representative_name,
+      'company_name', profile.company_name,
+      'business_email', profile.business_email,
+      'phone', profile.phone,
+      'currency', profile.currency,
+      'business_address', profile.business_address,
+      'tax_id', profile.tax_id,
+      'payment_link', profile.payment_link,
+      'upi_id', profile.upi_id,
+      'bank_account_holder', profile.bank_account_holder,
+      'bank_name', profile.bank_name,
+      'bank_account_number', profile.bank_account_number,
+      'bank_swift_code', profile.bank_swift_code,
+      'bank_routing_code', profile.bank_routing_code
+    ) END
+  )
+  FROM public.invoices AS invoice
+  LEFT JOIN public.clients AS client ON client.id::TEXT = invoice.client_id::TEXT
+  LEFT JOIN public.profiles AS profile ON profile.id::TEXT = invoice.user_id::TEXT
+  WHERE invoice.id::TEXT = p_invoice_id OR invoice.invoice_number = p_invoice_id
+  ORDER BY CASE WHEN invoice.id::TEXT = p_invoice_id THEN 0 ELSE 1 END
+  LIMIT 1;
+$$;
+REVOKE ALL ON FUNCTION public.get_public_invoice(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_public_invoice(TEXT) TO anon, authenticated;
 
 -- 7. Enable Realtime Replication for instant live UI updates
 ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
